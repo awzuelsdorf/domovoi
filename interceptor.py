@@ -3,6 +3,23 @@ from collections import Mapping
 from twisted.names import dns, server, client, cache
 from twisted.application import service, internet
 
+import re
+def myprint(value):
+    print(value)
+    if value:
+        for v in value:
+            if v:
+                for v1 in v:
+                    payload = v1.__dict__.get("payload")
+                    if payload:
+                        record = str(payload)
+
+                        result = re.findall("<A address=(\d+\.\d+\.\d+\.\d+) ttl=\d+>", record)
+                        if result:
+                            print(f"Match: '{result}' '{record}'")
+                        else:
+                            print(f"No match: '{result}' '{record}'")
+    return value
 
 class MapResolver(client.Resolver):
     def __init__(self, servers):
@@ -12,13 +29,13 @@ class MapResolver(client.Resolver):
 
     def lookupAddress(self, name, timeout = None):
         lookup_result = self._lookup(name, dns.IN, dns.A, timeout)
-        print(lookup_result)
+        lookup_result.addCallback(myprint)
         return lookup_result
 
 
 # Setup Twisted application with upstream dns server at 127.0.0.1:5335 (unbound dns resolver).
 application = service.Application('dnsserver', 1, 1)
-simpledns = MapResolver(custom_mapping, servers=[("127.0.0.1", 5335)])
+simpledns = MapResolver(servers=[("127.0.0.1", 5335)])
 
 # Create protocols.
 f = server.DNSServerFactory(caches=[cache.CacheResolver()], clients=[simpledns])
@@ -39,4 +56,4 @@ ret.setServiceParent(service.IServiceCollection(application))
 
 if __name__ == '__main__':
     import sys
-    print f"Usage: twistd -ny {sys.argv[0]}"
+    print(f"Usage: twistd -ny {sys.argv[0]}")
