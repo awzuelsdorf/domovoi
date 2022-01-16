@@ -35,11 +35,9 @@ export PI_HOLE_PW="<redacted>"
 
 Next, you will need to ensure virtualenv is installed. On Raspbian, this can be done by running `sudo apt install virtualenv -y`
 
-Once virtualenv is installed, run `./run_domain_alert.sh`. This may take some time since there is some one-time setup that needs to happen. Once this command finishes, there should be a 'windower_whitelist.bin' and 'windower_blacklist.bin' file in your ~/domovoi directory.
+Once virtualenv is installed, run `./setup_crontab.sh`. This may take some time since there is some one-time setup that needs to happen. Once this command finishes, there should be a 'windower_whitelist.bin' and 'windower_blacklist.bin' file in your ~/domovoi directory.
 
-Once you have verified that the two .bin files exist, update your crontab to run the `run_domain_alert.sh` script periodically. If you have no existing cron jobs (to check, use `crontab -l`), then you can set this up using `setup_crontab.sh`. IF you have existing cron jobs, then you will need to update crontab manually.
-
-Once cron is updated, visit a website you have not visited in the last month and wait until the cron job runs at least once. It should run every 5 minutes. First it runs at the top of the hour, then five minutes past the hour, then 10 minutes past the hour, etc, if you set it up using `setup_crontab.sh`. After the first run (or second run, depending upon how close to the five-minute mark you visited the website), you should get a text at your twilio number saying that you visited at least one new domain. If you don't get the text after two runs, check the run_domain_alert.sh.log file for errors.
+Once you've verified that the two .bin files exist, visit a website you have not visited in the last month and wait until the cron job runs at least once. It should run every 5 minutes. First it runs at the top of the hour, then five minutes past the hour, then 10 minutes past the hour, etc, if you set it up using `setup_crontab.sh`. After the first run (or second run, depending upon how close to the five-minute mark you visited the website), you should get a text at your twilio number saying that you visited at least one new domain. If you don't get the text after two runs, check the run_domain_alert.sh.log file for errors.
 
 ## Terms of Use ##
 
