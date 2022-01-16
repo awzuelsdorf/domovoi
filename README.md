@@ -29,7 +29,7 @@ export TWILIO_ACCOUNT_SID="<redacted"
 export TWILIO_AUTH_TOKEN="<redacted>"
 export TWILIO_PHONE="<redacted>" #This should be your twilio-assigned phone number
 export ADMIN_PHONE="<redacted>" #This should be your phone number
-export PI_HOLE_PW="http://192.168.0.101/admin" # Note: there should be no backslash following 'admin'.
+export PI_HOLE_URL="http://192.168.0.101/admin" # Note: there should be no backslash following 'admin'.
 export PI_HOLE_PW="<redacted>"
 ```
 
