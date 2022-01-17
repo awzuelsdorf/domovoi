@@ -2,7 +2,6 @@ from twisted.names import dns, server, client, cache
 from twisted.application import service, internet
 
 from ip_address_utils import ip_cidr_to_ip_value_range, get_value, value_to_ip
-from numpy import array as np_array
 
 import re
 import os
@@ -27,7 +26,7 @@ class MapResolver(client.Resolver):
             for ip_cidr in ip_cidr_file:
                 ip_value_ranges.append(ip_cidr_to_ip_value_range(ip_cidr.strip()))
 
-        return np_array(ip_value_ranges)
+        return ip_value_ranges
 
     def _binary_search_range_tuples(self, value):
         """
