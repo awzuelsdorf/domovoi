@@ -62,7 +62,7 @@ class MapResolver(client.Resolver):
     def is_in_blocked_ip_value_range(self, ip_address):
         ip_address_value = get_value(ip_address)
 
-        found_range = self._binary_search_tuples(ip_address_value)
+        found_range = self._binary_search_range_tuples(ip_address_value)
 
         if found_range is None:
             print(f"IP address {ip_address} with value {ip_address_value} not found in IP address ranges.")
