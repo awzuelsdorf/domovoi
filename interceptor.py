@@ -6,6 +6,8 @@ from ip_address_utils import ip_cidr_to_ip_value_range, get_value, value_to_ip
 import re
 import os
 
+DEFAULT_INTERCEPTOR_PORT = 47786
+
 class MapResolver(client.Resolver):
     def __init__(self, servers, ip_address_file_name):
         client.Resolver.__init__(self, servers=servers)
@@ -88,7 +90,7 @@ f.noisy = p.noisy = False
 
 # Register both TCP and UDP on port 47786.
 ret = service.MultiService()
-PORT = 47786
+PORT = os.environ.get("INTERCEPTOR_PORT", DEFAULT_INTERCEPTOR_PORT) or DEFAULT_INTERCEPTOR_PORT
 
 # Attach services to the parent.
 for (klass, arg) in [(internet.TCPServer, f), (internet.UDPServer, p)]:
