@@ -51,3 +51,6 @@ Thumbs.db
 *.wmv
 
 .twilio_creds
+*.bin
+twistd.pid
+.env
