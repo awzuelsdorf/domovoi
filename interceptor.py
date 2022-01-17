@@ -28,33 +28,16 @@ class MapResolver(client.Resolver):
 
         return ip_value_ranges
 
-    def _binary_search_range_tuples(self, value):
+    def _search_range_tuples(self, value):
         """
         Binary searches the IP value range tuples, using the midpoint of the
         range as the 'value' of the range, to see if 'value' is contained in
         any of the ranges. Returns the matching IP value range or None
         if no containing range found.
         """
-        low = 0
-        high = len(self.blocked_ip_value_ranges) - 1
-        mid = 0
-  
-        while low <= high:
-            # for get integer result
-            mid = (high + low) // 2
-  
-            # Check if n is present at mid
-            if self.blocked_ip_value_ranges[mid][0] >= value and self.blocked_ip_value_ranges[mid][1] <= value:
-                return self.blocked_ip_value_ranges[mid]
-            else: 
-                mid_value = sum(self.blocked_ip_value_ranges[mid]) / 2
-
-                # If n is greater, compare to the right of mid
-                if mid_value > value:
-                    high = mid - 1
-                # If n is smaller, compared to the left of mid
-                else:
-                    low = mid + 1
+        for range_i in self.blocked_ip_value_ranges:
+            if range_i[0] >= value and range_i[1] <= value:
+                return range_i
 
         # element was not present in the list, return None
         return None
@@ -62,7 +45,7 @@ class MapResolver(client.Resolver):
     def is_in_blocked_ip_value_range(self, ip_address):
         ip_address_value = get_value(ip_address)
 
-        found_range = self._binary_search_range_tuples(ip_address_value)
+        found_range = self._search_range_tuples(ip_address_value)
 
         if found_range is None:
             print(f"IP address {ip_address} with value {ip_address_value} not found in IP address ranges.")
