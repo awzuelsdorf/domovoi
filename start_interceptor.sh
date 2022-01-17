@@ -2,7 +2,7 @@
 
 
 # Don't restart if we don't need it.
-if [ "$(ps -ef | grep 'twistd -ny interceptor.py' | grep -v 'grep')" != "" ]; then
+if [ "$(ps -ef | grep 'twistd -ny ' | grep 'interceptor.py' | grep -v 'grep')" != "" ]; then
     exit 0
 fi
 
