@@ -36,7 +36,7 @@ class MapResolver(client.Resolver):
         if no containing range found.
         """
         for range_i in self.blocked_ip_value_ranges:
-            if range_i[0] >= value and range_i[1] <= value:
+            if range_i[0] <= value and value <= range_i[1]:
                 return range_i
 
         # element was not present in the list, return None
