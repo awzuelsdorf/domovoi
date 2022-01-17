@@ -87,7 +87,7 @@ class MapResolver(client.Resolver):
 
                                 if result:
                                     print(f"Match: '{result}' '{record}'")
-                                    if self.is_in_blocked_ip_value_range(result):
+                                    if self.is_in_blocked_ip_value_range(result[0]):
                                         return []
                                 else:
                                     print(f"No match: '{result}' '{record}'")
