@@ -1,5 +1,7 @@
 from twilio.rest import Client
 import os
+import requests
+import time
 
 def notify_of_new_domains(domains: list, recipient_phone: str, twilio_phone: str, msg_chars_limit: int=1000, blocked: bool=True):
     """
@@ -35,7 +37,7 @@ def notify_of_new_domains(domains: list, recipient_phone: str, twilio_phone: str
 
     print(f"Sending message with SID: {message.sid}")
 
-def notify_of_ip_block(ip_address: str, blocked_ip_range: tuple, recipient_phone: str, twilio_phone: str):
+def notify_of_ip_block(ip_address: str, blocked_ip_range: tuple, recipient_phone: str, twilio_phone: str, retries: int=3, delay: int=5):
     """
     Send message if an IP address was blocked for being in a certain blocked IP range.
     """
@@ -49,10 +51,20 @@ def notify_of_ip_block(ip_address: str, blocked_ip_range: tuple, recipient_phone
 
     body = f"Blocked IP address '{ip_address}' in blocked range '{blocked_ip_range}'"
 
-    message = client.messages.create(
-        body=body,
-        from_=twilio_phone,
-        to=recipient_phone
-    )
+    retry = 0
+
+    while retry < retries:
+        try:
+            message = client.messages.create(
+                body=body,
+                from_=twilio_phone,
+                to=recipient_phone
+            )
+
+            break
+        except requests.exceptions.ConnectionError as ce:
+            retry += 1
+            print(f"Received connection error {ce} . Retry {retry} / {retries} . Delay is {delay} seconds")
+            time.sleep(delay)
 
     print(f"Sending message with SID: {message.sid}")
