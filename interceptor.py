@@ -87,7 +87,7 @@ class MapResolver(client.Resolver):
                                         if result[0] not in self.blocked_ips:
                                             print(f"Adding '{result[0]}' to blocked IP address list.")
                                             self.blocked_ips.add(result[0])
-                                            twilio_utils.notify_of_ip_block(result[0], (value_to_ip(blocked_ip_range[0]), value_to_ip(blocked_ip_range[1])), os.environ["ADMIN_PHONE"], os.environ["TWILIO_PHONE"])
+                                            #twilio_utils.notify_of_ip_block(result[0], (value_to_ip(blocked_ip_range[0]), value_to_ip(blocked_ip_range[1])), os.environ["ADMIN_PHONE"], os.environ["TWILIO_PHONE"])
                                         else:
                                             print(f"Not adding '{result[0]}' to blocked IP address list or notifiying via Twilio")
 
