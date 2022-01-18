@@ -19,8 +19,12 @@ fi
 
 export PYTHONPATH=$PYTHONPATH:/home/pi/domovoi:.
 
-if [ "$IP_ADDRESS_FILE_PATH" == "" ]; then
-    export IP_ADDRESS_FILE_PATH='/home/pi/domovoi/cons_ru_ir_cn_kp_hk_tr_bg_by_sy_la_kh_th_ph_vn_mm_mn_mk_mo_af_al_rs_ba_si_hr_iq_ae_sa_ye_eg_lb_cy_pk_in_bd_bt_bh_qa_kw_kz_kg_tj_tm_uz_am_az_lk_ro_me_md.txt'
+if [ "$BLOCKED_IP_FILE_PATH" == "" ]; then
+    export BLOCKED_IP_FILE_PATH='/home/pi/domovoi/cons_ru_ir_cn_kp_hk_tr_bg_by_sy_la_kh_th_ph_vn_mm_mn_mk_mo_af_al_rs_ba_si_hr_iq_ae_sa_ye_eg_lb_cy_pk_in_bd_bt_bh_qa_kw_kz_kg_tj_tm_uz_am_az_lk_ro_me_md.txt'
+fi
+
+if [ "$WHITELIST_IP_FILE_PATH" == "" ]; then
+    export WHITELIST_IP_FILE_PATH='/home/pi/domovoi/whitelist_ips.txt'
 fi
 
 if [ ! -f ".twilio_creds" ]; then
