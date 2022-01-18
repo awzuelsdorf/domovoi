@@ -47,7 +47,6 @@ def notify_of_ip_block(ip_address: str, blocked_ip_range: tuple, recipient_phone
 
     account_sid = os.environ['TWILIO_ACCOUNT_SID']
     auth_token = os.environ['TWILIO_AUTH_TOKEN']
-    client = Client(account_sid, auth_token)
 
     body = f"Blocked IP address '{ip_address}' in blocked range '{blocked_ip_range}'"
 
@@ -55,16 +54,17 @@ def notify_of_ip_block(ip_address: str, blocked_ip_range: tuple, recipient_phone
 
     while retry < retries:
         try:
+            client = Client(account_sid, auth_token)
             message = client.messages.create(
                 body=body,
                 from_=twilio_phone,
                 to=recipient_phone
             )
 
+            print(f"Sending message with SID: {message.sid}")
             break
         except requests.exceptions.ConnectionError as ce:
             retry += 1
             print(f"Received connection error {ce} . Retry {retry} / {retries} . Delay is {delay} seconds")
             time.sleep(delay)
 
-    print(f"Sending message with SID: {message.sid}")
