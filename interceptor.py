@@ -3,6 +3,8 @@ from twisted.application import service, internet
 
 from ip_address_utils import ip_cidr_to_ip_value_range, get_value, value_to_ip
 
+import twilio_utils
+
 import re
 import os
 
@@ -13,6 +15,8 @@ class MapResolver(client.Resolver):
         client.Resolver.__init__(self, servers=servers)
 
         self.blocked_ip_value_ranges = self._populate_blocked_ip_value_ranges(ip_address_file_name)
+
+        self.blocked_ips = set()
 
         self.ttl = 10
 
@@ -44,17 +48,21 @@ class MapResolver(client.Resolver):
         # element was not present in the list, return None
         return None
   
-    def is_in_blocked_ip_value_range(self, ip_address):
+    def get_blocked_ip_value_range(self, ip_address):
+        """
+        Checks whether ip address is in a blocked IP range. Returns the blocked
+        range if one is found. Returns None otherwise.
+        """
         ip_address_value = get_value(ip_address)
 
         found_range = self._search_range_tuples(ip_address_value)
 
         if found_range is None:
             print(f"IP address {ip_address} with value {ip_address_value} not found in IP address ranges.")
-            return False
+            return None
         else:
             print(f"IP address {ip_address} with value {ip_address_value} found in IP address range {(value_to_ip(found_range[0]), value_to_ip(found_range[1]))} with values {found_range} .")
-            return True
+            return found_range
 
     def assess_found_ips(self, value):
         print(value)
@@ -72,7 +80,17 @@ class MapResolver(client.Resolver):
 
                                 if result:
                                     print(f"Match: '{result}' '{record}'")
-                                    if self.is_in_blocked_ip_value_range(result[0]):
+
+                                    blocked_ip_range = self.get_blocked_ip_value_range(result[0])
+
+                                    if blocked_ip_range:
+                                        if result[0] not in self.blocked_ips:
+                                            print(f"Adding '{result[0]}' to blocked IP address list.")
+                                            self.blocked_ips.add(result[0])
+                                            twilio_utils.notify_of_ip_block(result[0], blocked_ip_range, os.environ["ADMIN_PHONE"], os.environ["TWILIO_PHONE"])
+                                        else:
+                                            print(f"Not adding '{result[0]}' to blocked IP address list or notifiying via Twilio")
+
                                         return []
                                 else:
                                     print(f"No match: '{result}' '{record}'")
