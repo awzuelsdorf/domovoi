@@ -56,7 +56,7 @@ class MapResolver(client.Resolver):
 
 # Setup Twisted application with upstream dns server at 127.0.0.1:5335 (unbound dns resolver).
 application = service.Application('dnsserver', 1, 1)
-simpledns = MapResolver(servers=[("127.0.0.1", 5335)], blocked_ip_file_name=os.environ["BLOCKED_IP_FILE_PATH"], whitelist_ip_file_name=os.environ["WHITELIST_IP_FILE_PATH"])
+simpledns = MapResolver(servers=[("127.0.0.1", 5335)], blocked_countries_list=[_.upper() for _ in os.environ["BLOCKED_COUNTRIES_LIST"].split(",")], ip2location_bin_file_path=os.environ["IP2LOCATION_BIN_FILE_PATH"], ip2location_mode=os.environ["IP2LOCATION_MODE"])
 
 # Create protocols.
 f = server.DNSServerFactory(caches=[cache.CacheResolver()], clients=[simpledns])
