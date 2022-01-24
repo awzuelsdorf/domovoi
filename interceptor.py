@@ -7,17 +7,17 @@ import twilio_utils
 
 import re
 import os
+import IP2Location
 
 DEFAULT_INTERCEPTOR_PORT = 47786
 
 class MapResolver(client.Resolver):
-    def __init__(self, servers, blocked_ip_file_name, whitelist_ip_file_name):
+    def __init__(self, servers, blocked_countries_list, ip2location_bin_file_path='IP2LOCATION-LITE-DB1.BIN', ip2location_mode='SHARED_MEMORY'):
         client.Resolver.__init__(self, servers=servers)
 
-        self.blocked_ip_value_ranges = self._populate_ip_value_ranges(blocked_ip_file_name)
-        self.whitelist_ip_value_ranges = self._populate_ip_value_ranges(whitelist_ip_file_name)
+        self.blocked_countries_list = list(blocked_countries_list)
 
-        self.blocked_ips = set()
+        self.ip2location_client = IP2Location.IP2Location(filename=ip2location_bin_file_path, mode=ip2location_mode)
 
         self.ttl = 10
 
@@ -25,50 +25,6 @@ class MapResolver(client.Resolver):
         lookup_result = self._lookup(name, dns.IN, dns.A, timeout)
         lookup_result.addCallback(lambda value: self.assess_found_ips(value))
         return lookup_result
-
-    def _populate_ip_value_ranges(self, ip_cidr_file_name):
-        ip_value_ranges = list()
-
-        with open(ip_cidr_file_name, 'r', encoding='utf-8') as ip_cidr_file:
-            for ip_cidr in ip_cidr_file:
-                ip_value_ranges.append(ip_cidr_to_ip_value_range(ip_cidr.strip()))
-
-        return ip_value_ranges
-
-    def _search_range_tuples(self, value, blocked):
-        """
-        Binary searches the IP value range tuples, using the midpoint of the
-        range as the 'value' of the range, to see if 'value' is contained in
-        any of the ranges. Returns the matching IP value range or None
-        if no containing range found.
-        """
-        if blocked:
-            ranges = self.blocked_ip_value_ranges
-        else:
-            ranges = self.whitelist_ip_value_ranges
-
-        for range_i in ranges:
-            if range_i[0] <= value and value <= range_i[1]:
-                return range_i
-
-        # element was not present in the list, return None
-        return None
-  
-    def get_ip_value_range(self, ip_address, blocked):
-        """
-        Checks whether ip address is in a blocked or whitelisted IP range. Returns the
-        range if one is found. Returns None otherwise.
-        """
-        ip_address_value = get_value(ip_address)
-
-        found_range = self._search_range_tuples(ip_address_value, blocked)
-
-        if found_range is None:
-            print(f"IP address {ip_address} with value {ip_address_value} not found in {'blocked' if blocked else 'whitelisted'} IP address ranges.")
-            return None
-        else:
-            print(f"IP address {ip_address} with value {ip_address_value} found in {'blocked' if blocked else 'whitelisted'} IP address range {(value_to_ip(found_range[0]), value_to_ip(found_range[1]))} with values {found_range} .")
-            return found_range
 
     def assess_found_ips(self, value):
         print(value)
@@ -87,24 +43,16 @@ class MapResolver(client.Resolver):
                                 if result:
                                     print(f"Match: '{result}' '{record}'")
 
-                                    blocked_ip_range = self.get_ip_value_range(result[0], True)
-
-                                    if blocked_ip_range:
-                                        whitelisted_ip_range = self.get_ip_value_range(result[0], False)
-
-                                        if not whitelisted_ip_range:
-                                            if result[0] not in self.blocked_ips:
-                                                print(f"Adding '{result[0]}' to blocked IP address list.")
-                                                self.blocked_ips.add(result[0])
-                                                #twilio_utils.notify_of_ip_block(result[0], (value_to_ip(blocked_ip_range[0]), value_to_ip(blocked_ip_range[1])), os.environ["ADMIN_PHONE"], os.environ["TWILIO_PHONE"])
-                                            else:
-                                                print(f"Not adding '{result[0]}' to blocked IP address list or notifiying via Twilio")
-
+                                    country_code = self.ip2location_client.get_country_short(result[0])
+                                    if country_code in self.blocked_countries_list:
+                                        print(f"Blocked IP '{result[0]}' with country code '{country_code}'. Blocked country codes were {', '.join(self.blocked_countries_list)}")
+                                        #twilio_utils.notify_of_ip_block(result[0], country_code, os.environ["ADMIN_PHONE"], os.environ["TWILIO_PHONE"])
                                         return []
+                                    else:
+                                        print(f"Permitted IP '{result[0]}' with country code '{country_code}'. Blocked country codes were {', '.join(self.blocked_countries_list)}")
                                 else:
                                     print(f"No match: '{result}' '{record}'")
         return value
-
 
 # Setup Twisted application with upstream dns server at 127.0.0.1:5335 (unbound dns resolver).
 application = service.Application('dnsserver', 1, 1)

@@ -6,7 +6,7 @@ This program allows you to get text alerts sent to your mobile phone whenever yo
 
 ## Assumptions ##
 
-This guide assumes you are installing this software on a Raspberry Pi Zero running the raspbian operating system.
+This guide assumes you are installing this software on a Raspberry Pi Zero running the raspbian operating system. It also assumes you have a copy of the LITE IP-COUNTRY Database from IP2Location, available [here](https://lite.ip2location.com/database/db1-ip-country)
 
 ## Installation ##
 
@@ -46,3 +46,6 @@ This software relies on Twilio for sending texts. You must provide, fund, and ma
 ## Privacy ##
 
 The maintainers of this software do not collect or have access to the data this software collects. The contents of text messages sent by this software may be accessed via Twilio's web interface or by other methods. The maintainers of this software make no guarantees about the use or misuse of any data sent to Twilio, nor do the maintainers of this software make any guarantees regarding Twilio's security or privacy.
+
+## Acknowledgements ##
+This site or product includes IP2Location LITE data available from [https://lite.ip2location.com](https://lite.ip2location.com)

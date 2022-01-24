@@ -37,18 +37,18 @@ def notify_of_new_domains(domains: list, recipient_phone: str, twilio_phone: str
 
     print(f"Sending message with SID: {message.sid}")
 
-def notify_of_ip_block(ip_address: str, blocked_ip_range: tuple, recipient_phone: str, twilio_phone: str, retries: int=3, delay: int=5):
+def notify_of_ip_block(ip_address: str, country_code: str, recipient_phone: str, twilio_phone: str, retries: int=3, delay: int=5):
     """
     Send message if an IP address was blocked for being in a certain blocked IP range.
     """
-    if not ip_address or not blocked_ip_range:
+    if not ip_address or not country_code:
         print(f"Invalid parameters: IP address \"{ip_address}\", blocked ip range \"{blocked_ip_range}\"")
         return
 
     account_sid = os.environ['TWILIO_ACCOUNT_SID']
     auth_token = os.environ['TWILIO_AUTH_TOKEN']
 
-    body = f"Blocked IP address '{ip_address}' in blocked range '{blocked_ip_range}'"
+    body = f"Blocked IP address '{ip_address}' in blocked country '{country_code}'"
 
     retry = 0
 
