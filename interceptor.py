@@ -1,10 +1,6 @@
 from twisted.names import dns, server, client, cache
 from twisted.application import service, internet
 
-from ip_address_utils import ip_cidr_to_ip_value_range, get_value, value_to_ip
-
-import twilio_utils
-
 import re
 import os
 import IP2Location
@@ -46,7 +42,6 @@ class MapResolver(client.Resolver):
                                     country_code = self.ip2location_client.get_country_short(result[0])
                                     if country_code in self.blocked_countries_list:
                                         print(f"Blocked IP '{result[0]}' with country code '{country_code}'. Blocked country codes were {', '.join(self.blocked_countries_list)}")
-                                        #twilio_utils.notify_of_ip_block(result[0], country_code, os.environ["ADMIN_PHONE"], os.environ["TWILIO_PHONE"])
                                         return []
                                     else:
                                         print(f"Permitted IP '{result[0]}' with country code '{country_code}'. Blocked country codes were {', '.join(self.blocked_countries_list)}")
