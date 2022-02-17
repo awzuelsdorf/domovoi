@@ -20,7 +20,7 @@ def notify_of_new_domains(domains: list, recipient_phone: str, twilio_phone: str
 
     while i < len(domains) and len(body) < msg_chars_limit:
         if len(body) + len(domains[i]) < msg_chars_limit:
-            body += f"{domains[i]}\n"
+            body += f"https://duckduckgo.com/?q={domains[i]}\n"
 
             i += 1
         else:
@@ -42,7 +42,7 @@ def notify_of_ip_block(ip_address: str, country_code: str, recipient_phone: str,
     Send message if an IP address was blocked for being in a certain blocked IP range.
     """
     if not ip_address or not country_code:
-        print(f"Invalid parameters: IP address \"{ip_address}\", blocked ip range \"{blocked_ip_range}\"")
+        print(f"Invalid parameters: IP address \"{ip_address}\", country code \"{country_code}\"")
         return
 
     account_sid = os.environ['TWILIO_ACCOUNT_SID']
