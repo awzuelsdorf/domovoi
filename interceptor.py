@@ -5,7 +5,9 @@ import re
 import os
 import IP2Location
 
-DEFAULT_INTERCEPTOR_PORT = 47786
+INTERCEPTOR_UPSTREAM_DNS_IP = os.environ["INTERCEPTOR_UPSTREAM_DNS_SERVER_IP"]
+INTERCEPTOR_UPSTREAM_DNS_PORT = int(os.environ["INTERCEPTOR_UPSTREAM_DNS_SERVER_PORT"])
+PORT = int(os.environ["INTERCEPTOR_PORT"])
 
 class MapResolver(client.Resolver):
     def __init__(self, servers, blocked_countries_list, ip2location_bin_file_path='IP2LOCATION-LITE-DB1.BIN', ip2location_mode='SHARED_MEMORY'):
@@ -49,9 +51,9 @@ class MapResolver(client.Resolver):
                                     print(f"No match: '{result}' '{record}'")
         return value
 
-# Setup Twisted application with upstream dns server at 127.0.0.1:5335 (unbound dns resolver).
+# Setup Twisted application with upstream dns server.
 application = service.Application('dnsserver', 1, 1)
-simpledns = MapResolver(servers=[("127.0.0.1", 5335)], blocked_countries_list=[_.upper() for _ in os.environ["BLOCKED_COUNTRIES_LIST"].split(",")], ip2location_bin_file_path=os.environ["IP2LOCATION_BIN_FILE_PATH"], ip2location_mode=os.environ["IP2LOCATION_MODE"])
+simpledns = MapResolver(servers=[(INTERCEPTOR_UPSTREAM_DNS_IP, INTERCEPTOR_UPSTREAM_DNS_PORT)], blocked_countries_list=[_.upper() for _ in os.environ["BLOCKED_COUNTRIES_LIST"].split(",")], ip2location_bin_file_path=os.environ["IP2LOCATION_BIN_FILE_PATH"], ip2location_mode=os.environ["IP2LOCATION_MODE"])
 
 # Create protocols.
 f = server.DNSServerFactory(caches=[cache.CacheResolver()], clients=[simpledns])
@@ -60,7 +62,6 @@ f.noisy = p.noisy = False
 
 # Register both TCP and UDP on port 47786.
 ret = service.MultiService()
-PORT = os.environ.get("INTERCEPTOR_PORT", DEFAULT_INTERCEPTOR_PORT) or DEFAULT_INTERCEPTOR_PORT
 
 # Attach services to the parent.
 for (klass, arg) in [(internet.TCPServer, f), (internet.UDPServer, p)]:

@@ -19,6 +19,18 @@ fi
 
 export PYTHONPATH=$PYTHONPATH:/home/pi/domovoi:.
 
+if [ "$INTERCEPTOR_PORT" == "" ]; then
+        export INTERCEPTOR_PORT='47786'
+fi
+
+if [ "$INTERCEPTOR_UPSTREAM_DNS_SERVER_IP" == "" ]; then
+        export INTERCEPTOR_UPSTREAM_DNS_SERVER_IP='1.1.1.1'
+fi
+
+if [ "$INTERCEPTOR_UPSTREAM_DNS_SERVER_PORT" == "" ]; then
+        export INTERCEPTOR_UPSTREAM_DNS_SERVER_PORT='53'
+fi
+
 if [ "$IP2LOCATION_BIN_FILE_PATH" == "" ]; then
         export IP2LOCATION_BIN_FILE_PATH='IP2LOCATION-LITE-DB1.BIN'
 fi
@@ -49,7 +61,7 @@ if [ "$TWILIO_ACCOUNT_SID" == "" ]; then
 fi
 
 if [ "$TWILIO_AUTH_TOKEN" == "" ]; then
-    echo "No TWILIO_AUTH_TOKEN environment variable defined. Please try again."
+        echo "No TWILIO_AUTH_TOKEN environment variable defined. Please try again."
         exit 7
 fi
 
