@@ -12,7 +12,7 @@ INTERCEPTOR_UPSTREAM_DNS_PORT = int(os.environ["INTERCEPTOR_UPSTREAM_DNS_SERVER_
 PORT = int(os.environ["INTERCEPTOR_PORT"])
 
 class MapResolver(client.Resolver):
-    def __init__(self, servers, blocked_countries_list, ip2location_bin_file_path='IP2LOCATION-LITE-DB1.BIN', ip2location_mode='SHARED_MEMORY', domain_data_db_file="./domain_data.db"):
+    def __init__(self, servers, blocked_countries_list, ip2location_bin_file_path='IP2LOCATION-LITE-DB1.BIN', ip2location_mode='SHARED_MEMORY', domain_data_db_file="/tmp/domain_data.db"):
         client.Resolver.__init__(self, servers=servers)
 
         self.blocked_countries_list = list(blocked_countries_list)
@@ -55,7 +55,10 @@ class MapResolver(client.Resolver):
     def assess_and_log_reason(self, value, name):
         reason, response = self.assess_found_ips(value)
 
-        self.log_reason(name, reason, False if not response else True)
+        try:
+            self.log_reason(name, reason, False if not response else True)
+        except BaseException as be:
+            print(f"Could not log reason '{reason}' for name '{name}' due to exception '{be}'")
 
         return response
 
