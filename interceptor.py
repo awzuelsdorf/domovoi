@@ -4,13 +4,15 @@ from twisted.application import service, internet
 import re
 import os
 import IP2Location
+import sqlite3
+import datetime
 
 INTERCEPTOR_UPSTREAM_DNS_IP = os.environ["INTERCEPTOR_UPSTREAM_DNS_SERVER_IP"]
 INTERCEPTOR_UPSTREAM_DNS_PORT = int(os.environ["INTERCEPTOR_UPSTREAM_DNS_SERVER_PORT"])
 PORT = int(os.environ["INTERCEPTOR_PORT"])
 
 class MapResolver(client.Resolver):
-    def __init__(self, servers, blocked_countries_list, ip2location_bin_file_path='IP2LOCATION-LITE-DB1.BIN', ip2location_mode='SHARED_MEMORY'):
+    def __init__(self, servers, blocked_countries_list, ip2location_bin_file_path='IP2LOCATION-LITE-DB1.BIN', ip2location_mode='SHARED_MEMORY', domain_data_db_file="domain_data.db"):
         client.Resolver.__init__(self, servers=servers)
 
         self.blocked_countries_list = list(blocked_countries_list)
@@ -19,13 +21,48 @@ class MapResolver(client.Resolver):
 
         self.ttl = 10
 
+        self.domain_data_db_file = domain_data_db_file
+
     def lookupAddress(self, name, timeout = None):
         lookup_result = self._lookup(name, dns.IN, dns.A, timeout)
-        lookup_result.addCallback(lambda value: self.assess_found_ips(value))
+        lookup_result.addCallback(lambda value: self.assess_and_log_reason(value, name))
         return lookup_result
+
+    def log_reason(self, name, reason, permitted):
+        cursor = sqlite3.connect(self.domain_data_db_file)
+
+        cursor.execute('''CREATE TABLE IF NOT EXISTS domain_actions 
+                    (domain TEXT PRIMARY KEY, 
+                     first_time_seen TIMESTAMP WITH TIME ZONE,
+                     permitted BOOLEAN,
+                     reason TEXT)''')
+
+        cursor.execute('''
+                    INSERT INTO 
+                        domain_actions (domain, first_time_seen, permitted, reason) 
+                    VALUES 
+                        (?, ?, ?, ?) 
+                    ON CONFLICT (domain) DO UPDATE
+                    SET 
+                        permitted = ?, reason = ?''',
+            (name, datetime.datetime.now(tz=datetime.timezone.utc), permitted, reason, permitted, reason))
+
+        cursor.commit()
+
+        cursor.close()
+
+
+    def assess_and_log_reason(self, value, name):
+        reason, response = self.assess_found_ips(value)
+
+        self.log_reason(name, reason, False if not response else True)
+
+        return response
 
     def assess_found_ips(self, value):
         print(value)
+
+        reason = None
 
         if value:
             for v in value:
@@ -43,13 +80,20 @@ class MapResolver(client.Resolver):
 
                                     country_code = self.ip2location_client.get_country_short(result[0])
                                     if country_code in self.blocked_countries_list:
-                                        print(f"Blocked IP '{result[0]}' with country code '{country_code}'. Blocked country codes were {', '.join(self.blocked_countries_list)}")
-                                        return []
+                                        reason = f"Blocked IP '{result[0]}' with country code '{country_code}'. Blocked country codes were {', '.join(self.blocked_countries_list)}"
+
+                                        print(reason)
+
+                                        return reason, []
                                     else:
-                                        print(f"Permitted IP '{result[0]}' with country code '{country_code}'. Blocked country codes were {', '.join(self.blocked_countries_list)}")
+                                        reason = f"Permitted IP '{result[0]}' with country code '{country_code}'. Blocked country codes were {', '.join(self.blocked_countries_list)}"
+
+                                        print(reason)
                                 else:
-                                    print(f"No match: '{result}' '{record}'")
-        return value
+                                    reason = f"No match: '{result}' '{record}'"
+
+                                    print(reason)
+        return reason, value
 
 # Setup Twisted application with upstream dns server.
 application = service.Application('dnsserver', 1, 1)

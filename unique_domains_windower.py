@@ -1,8 +1,6 @@
 from pi_hole_admin import PiHoleAdmin
 import datetime
 from copy import deepcopy
-import os
-import json
 import pickle
 
 class UniqueDomainsWindower(object):
