@@ -50,7 +50,7 @@ Thumbs.db
 *.mov
 *.wmv
 
-.twilio_creds
-*.bin
+windower*.bin
+.*_creds
 twistd.pid
 .env
