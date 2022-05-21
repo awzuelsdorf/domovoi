@@ -7,6 +7,8 @@ import IP2Location
 import sqlite3
 import datetime
 
+import sqlite_utils
+
 INTERCEPTOR_UPSTREAM_DNS_IP = os.environ["INTERCEPTOR_UPSTREAM_DNS_SERVER_IP"]
 INTERCEPTOR_UPSTREAM_DNS_PORT = int(os.environ["INTERCEPTOR_UPSTREAM_DNS_SERVER_PORT"])
 PORT = int(os.environ["INTERCEPTOR_PORT"])
@@ -29,28 +31,9 @@ class MapResolver(client.Resolver):
         return lookup_result
 
     def log_reason(self, name, reason, permitted):
-        cursor = sqlite3.connect(self.domain_data_db_file)
+        right_now = datetime.datetime.now(tz=datetime.timezone.utc)
 
-        cursor.execute('''CREATE TABLE IF NOT EXISTS domain_actions 
-                    (domain TEXT PRIMARY KEY, 
-                     first_time_seen TIMESTAMP WITH TIME ZONE,
-                     permitted BOOLEAN,
-                     reason TEXT)''')
-
-        cursor.execute('''
-                    INSERT INTO 
-                        domain_actions (domain, first_time_seen, permitted, reason) 
-                    VALUES 
-                        (?, ?, ?, ?) 
-                    ON CONFLICT (domain) DO UPDATE
-                    SET 
-                        permitted = ?, reason = ?''',
-            (name, datetime.datetime.now(tz=datetime.timezone.utc), permitted, reason, permitted, reason))
-
-        cursor.commit()
-
-        cursor.close()
-
+        sqlite_utils.log_reason(self.domain_data_db_file, [{'name': name, 'reason': reason, 'permitted': permitted, 'first_time_seen': right_now, 'last_time_seen': right_now}], ['permitted', 'reason', 'last_time_seen'])
 
     def assess_and_log_reason(self, value, name):
         reason, response = self.assess_found_ips(value)
