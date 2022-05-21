@@ -33,7 +33,7 @@ class MapResolver(client.Resolver):
     def log_reason(self, name, reason, permitted):
         right_now = datetime.datetime.now(tz=datetime.timezone.utc)
 
-        sqlite_utils.log_reason(self.domain_data_db_file, [{'name': name, 'reason': reason, 'permitted': permitted, 'first_time_seen': right_now, 'last_time_seen': right_now}], ['permitted', 'reason', 'last_time_seen'])
+        sqlite_utils.log_reason(self.domain_data_db_file, [{'domain': name, 'reason': reason, 'permitted': permitted, 'first_time_seen': right_now, 'last_time_seen': right_now}], ['permitted', 'reason', 'last_time_seen'])
 
     def assess_and_log_reason(self, value, name):
         reason, response = self.assess_found_ips(value)
