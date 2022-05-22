@@ -12,9 +12,10 @@ def log_reason(domain_data_db_file, values_dicts, updateable_fields=None):
             if field not in values_dict:
                 raise ValueError(f"Missing field \"{field}\" from record {values_dict}")
 
-    for updateable_field in updateable_fields:
-        if updateable_field not in required_fields:
-            raise ValueError(f"Updateable field {updateable_field} is not in required fields {required_fields}")
+    if updateable_fields:
+        for updateable_field in updateable_fields:
+            if updateable_field not in required_fields:
+                raise ValueError(f"Updateable field {updateable_field} is not in required fields {required_fields}")
 
     with sqlite3.connect(domain_data_db_file) as cursor:
         cursor.execute('''CREATE TABLE IF NOT EXISTS domain_actions 
