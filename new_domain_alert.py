@@ -48,6 +48,7 @@ def main():
     print(f"Found blocked domains {previously_unseen_blocked_domains}")
 
     twilio_utils.notify_of_new_domains(previously_unseen_blocked_domains, os.environ["ADMIN_PHONE"], os.environ["TWILIO_PHONE"], blocked=True)
+    # Update reason and permitted because interceptor.py won't be able to record blocked domains since their requests never would have reached interceptor.py in the first place.
     sqlite_utils.log_reason(DB_FILE_NAME, [{'domain': domain, 'first_time_seen': seen_time, 'last_time_seen': seen_time, 'permitted': False, "reason": "Blocked by PiHole"} for domain, seen_time in previously_unseen_blocked_domain_data.items()], updateable_fields=['permitted', 'reason', 'last_time_seen'])
 
     print(f"Finished blacklist assessment in {time.time() - start} sec")
@@ -62,7 +63,9 @@ def main():
     print(f"Found permitted domains {previously_unseen_permitted_domains}")
 
     twilio_utils.notify_of_new_domains(previously_unseen_permitted_domains, os.environ["ADMIN_PHONE"], os.environ["TWILIO_PHONE"], blocked=False)
-    sqlite_utils.log_reason(DB_FILE_NAME, [{'domain': domain, 'first_time_seen': seen_time, 'last_time_seen': seen_time, 'permitted': True, "reason": "Permitted by PiHole"} for domain, seen_time in previously_unseen_permitted_domain_data.items()], updateable_fields=['permitted', 'reason', 'last_time_seen'])
+
+    # Don't update reason or permitted because interceptor.py has the final say on what is permitted, so no updates should be necessary on permitted domains from this file.
+    sqlite_utils.log_reason(DB_FILE_NAME, [{'domain': domain, 'first_time_seen': seen_time, 'last_time_seen': seen_time, 'permitted': True, "reason": "Permitted by PiHole"} for domain, seen_time in previously_unseen_permitted_domain_data.items()], updateable_fields=None)
 
     print(f"Finished whitelist assessment in {time.time() - start} sec")
 
