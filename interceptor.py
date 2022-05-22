@@ -6,6 +6,7 @@ import os
 import IP2Location
 import sqlite3
 import datetime
+from constants import DB_FILE_NAME
 
 import sqlite_utils
 
@@ -14,7 +15,7 @@ INTERCEPTOR_UPSTREAM_DNS_PORT = int(os.environ["INTERCEPTOR_UPSTREAM_DNS_SERVER_
 PORT = int(os.environ["INTERCEPTOR_PORT"])
 
 class MapResolver(client.Resolver):
-    def __init__(self, servers, blocked_countries_list, ip2location_bin_file_path='IP2LOCATION-LITE-DB1.BIN', ip2location_mode='SHARED_MEMORY', domain_data_db_file="/home/pi/domovoi/domain_data.db"):
+    def __init__(self, servers, blocked_countries_list, ip2location_bin_file_path='IP2LOCATION-LITE-DB1.BIN', ip2location_mode='SHARED_MEMORY', domain_data_db_file=DB_FILE_NAME):
         client.Resolver.__init__(self, servers=servers)
 
         self.blocked_countries_list = list(blocked_countries_list)
