@@ -3,6 +3,7 @@ import time
 import twilio_utils
 from pi_hole_admin import PiHoleAdmin
 from unique_domains_windower import UniqueDomainsWindower
+import sqlite_utils
 
 def initialize_default_windower(url: str, file_name: str, types: list, only_domains: bool, pi_hole_password_env_var: str="PI_HOLE_PW"):
     if file_name is None:
@@ -39,24 +40,28 @@ def main():
     start = time.time()
 
     print(f"Starting blacklist assessment at {start} sec since epoch")
-    
-    previously_unseen_blocked_domains = list(windower_blacklist.get_previously_unseen_domains())
+
+    previously_unseen_blocked_domain_data = windower_blacklist.get_previously_unseen_domains()
+    previously_unseen_blocked_domains = list(previously_unseen_blocked_domain_data.keys())
 
     print(f"Found blocked domains {previously_unseen_blocked_domains}")
 
     twilio_utils.notify_of_new_domains(previously_unseen_blocked_domains, os.environ["ADMIN_PHONE"], os.environ["TWILIO_PHONE"], blocked=True)
-    
+    sqlite_utils.log_reason("/home/pi/domvoi/domain_data.db", [{'domain': domain, 'first_time_seen': seen_time, 'last_time_seen': seen_time, 'permitted': False, "reason": "Blocked by PiHole"} for domain, seen_time in previously_unseen_blocked_domain_data.items()], updateable_fields=['permitted', 'reason', 'last_seen_time'])
+
     print(f"Finished blacklist assessment in {time.time() - start} sec")
 
     start = time.time()
 
     print(f"Starting whitelist assessment at {start} sec since epoch")
 
-    previously_unseen_permitted_domains = list(windower_whitelist.get_previously_unseen_domains())
+    previously_unseen_permitted_domain_data = windower_whitelist.get_previously_unseen_domains()
+    previously_unseen_permitted_domains = list(previously_unseen_permitted_domain_data.keys())
 
     print(f"Found permitted domains {previously_unseen_permitted_domains}")
 
     twilio_utils.notify_of_new_domains(previously_unseen_permitted_domains, os.environ["ADMIN_PHONE"], os.environ["TWILIO_PHONE"], blocked=False)
+    sqlite_utils.log_reason("/home/pi/domvoi/domain_data.db", [{'domain': domain, 'first_time_seen': seen_time, 'last_time_seen': seen_time, 'permitted': True, "reason": "Permitted by PiHole"} for domain, seen_time in previously_unseen_permitted_domain_data.items()], updateable_fields=['permitted', 'reason', 'last_seen_time'])
 
     print(f"Finished whitelist assessment in {time.time() - start} sec")
 

@@ -25,7 +25,7 @@ def log_reason(domain_data_db_file, values_dicts, updateable_fields=None):
                      reason TEXT)''')
 
     if updateable_fields:
-        command = 'INSERT INTO domain_actions (' + (', '.join(required_fields)) + ') VALUES (?, ?, ?, ?, ?) ON CONFLICT (domain) DO UPDATE SET ' + (", ".join([f"{field} = EXCLUDED.{field}" for field in updateable_fields]))
+        command = 'INSERT INTO domain_actions (' + (', '.join(required_fields)) + ') VALUES (?, ?, ?, ?, ?) ON CONFLICT (domain) DO UPDATE SET ' + (", ".join([f"{field} = CASE WHEN domain_actions.last_time_seen < EXCLUDED.last_time_seen THEN EXCLUDED.{field} ELSE domain_actions.{field} END" for field in updateable_fields]))
     else:
         command = 'INSERT INTO domain_actions (' + (', '.join(required_fields)) + ') VALUES (?, ?, ?, ?, ?) ON CONFLICT DO NOTHING'
 
