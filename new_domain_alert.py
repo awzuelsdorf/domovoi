@@ -47,7 +47,7 @@ def main():
     print(f"Found blocked domains {previously_unseen_blocked_domains}")
 
     twilio_utils.notify_of_new_domains(previously_unseen_blocked_domains, os.environ["ADMIN_PHONE"], os.environ["TWILIO_PHONE"], blocked=True)
-    sqlite_utils.log_reason("/home/pi/domvoi/domain_data.db", [{'domain': domain, 'first_time_seen': seen_time, 'last_time_seen': seen_time, 'permitted': False, "reason": "Blocked by PiHole"} for domain, seen_time in previously_unseen_blocked_domain_data.items()], updateable_fields=['permitted', 'reason', 'last_seen_time'])
+    sqlite_utils.log_reason("/home/pi/domvoi/domain_data.db", [{'domain': domain, 'first_time_seen': seen_time, 'last_time_seen': seen_time, 'permitted': False, "reason": "Blocked by PiHole"} for domain, seen_time in previously_unseen_blocked_domain_data.items()], updateable_fields=['permitted', 'reason', 'last_time_seen'])
 
     print(f"Finished blacklist assessment in {time.time() - start} sec")
 
@@ -61,7 +61,7 @@ def main():
     print(f"Found permitted domains {previously_unseen_permitted_domains}")
 
     twilio_utils.notify_of_new_domains(previously_unseen_permitted_domains, os.environ["ADMIN_PHONE"], os.environ["TWILIO_PHONE"], blocked=False)
-    sqlite_utils.log_reason("/home/pi/domvoi/domain_data.db", [{'domain': domain, 'first_time_seen': seen_time, 'last_time_seen': seen_time, 'permitted': True, "reason": "Permitted by PiHole"} for domain, seen_time in previously_unseen_permitted_domain_data.items()], updateable_fields=['permitted', 'reason', 'last_seen_time'])
+    sqlite_utils.log_reason("/home/pi/domvoi/domain_data.db", [{'domain': domain, 'first_time_seen': seen_time, 'last_time_seen': seen_time, 'permitted': True, "reason": "Permitted by PiHole"} for domain, seen_time in previously_unseen_permitted_domain_data.items()], updateable_fields=['permitted', 'reason', 'last_time_seen'])
 
     print(f"Finished whitelist assessment in {time.time() - start} sec")
 
