@@ -54,10 +54,9 @@ def main():
 
     print(f"Starting whitelist assessment at {start} sec since epoch")
 
-    previously_unseen_permitted_domain_data = windower_whitelist.get_previously_unseen_domains()
-
-    # Don't update reason or permitted because interceptor.py has the final say on what is permitted, so no updates should be necessary on permitted domains from this file.
-    sqlite_utils.log_reason(DB_FILE_NAME, [{'domain': domain, 'first_time_seen': seen_time, 'last_time_seen': seen_time, 'permitted': True, "reason": "Permitted by PiHole"} for domain, seen_time in previously_unseen_permitted_domain_data.items()], updateable_fields=None)
+    # Don't log "permitted" domains (according to pihole API) to DB because interceptor.py has the final say on what is permitted, so no updates or inserts should be necessary on permitted domains from the PiHole API.
+    # Instead, advance the window and perform notification based on data already in DB.
+    windower_whitelist.update_window()
 
     sqlite_utils.notify_of_new_domains_in_interval(DB_FILE_NAME, windower_whitelist._window_oldest_bound, windower_whitelist._window_newest_bound, True, os.environ['ADMIN_PHONE'], os.environ['TWILIO_PHONE'])
 
