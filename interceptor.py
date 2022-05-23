@@ -56,7 +56,7 @@ class MapResolver(client.Resolver):
             if not response:
                 self.log_reason(name, reason, False)
             else:
-                domain_name = self.get_domain_from_fqdn(name)
+                domain_name = self.get_domain_from_fqdn(name.decode('utf-8'))
 
                 if domain_name is not None:
                     print(domain_name)
