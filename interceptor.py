@@ -59,7 +59,7 @@ class MapResolver(client.Resolver):
                 domain_name = self.get_domain_from_fqdn(name.decode('utf-8'))
 
                 if domain_name is not None:
-                    print(domain_name)
+                    print(f"Saving domain name \"{domain_name}\" that corresponds to FQDN \"{name}\" since name was permitted")
                     self.log_reason(domain_name, reason, True)
                 else:
                     raise ValueError(f"Could not get domain name from \"{name}\"")
