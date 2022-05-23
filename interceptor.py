@@ -59,6 +59,7 @@ class MapResolver(client.Resolver):
                 domain_name = self.get_domain_from_fqdn(name)
 
                 if domain_name is not None:
+                    print(domain_name)
                     self.log_reason(domain_name, reason, True)
                 else:
                     raise ValueError(f"Could not get domain name from \"{name}\"")
