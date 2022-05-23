@@ -1,3 +1,4 @@
+import traceback
 from twisted.names import dns, server, client, cache
 from twisted.application import service, internet
 
@@ -63,6 +64,7 @@ class MapResolver(client.Resolver):
                     raise ValueError(f"Could not get domain name from \"{name}\"")
 
         except BaseException as be:
+            traceback.print_exc()
             print(f"Could not log reason '{reason}' for name '{name}' due to exception '{be}'")
 
         return response
