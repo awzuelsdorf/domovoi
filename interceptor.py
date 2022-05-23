@@ -1,10 +1,10 @@
 from twisted.names import dns, server, client, cache
 from twisted.application import service, internet
 
+import tldextract
 import re
 import os
 import IP2Location
-import sqlite3
 import datetime
 from constants import DB_FILE_NAME
 
@@ -26,7 +26,15 @@ class MapResolver(client.Resolver):
 
         self.domain_data_db_file = domain_data_db_file
 
-    def lookupAddress(self, name, timeout = None):
+    def get_domain_from_fqdn(self, fqdn):
+        result = tldextract.extract(fqdn)
+
+        if result.suffix is not None and result.suffix.strip() != '':
+            return f"{result.domain}.{result.suffix}"
+
+        return None
+
+    def lookupAddress(self, name, timeout=None):
         lookup_result = self._lookup(name, dns.IN, dns.A, timeout)
         lookup_result.addCallback(lambda value: self.assess_and_log_reason(value, name))
         return lookup_result
@@ -39,8 +47,21 @@ class MapResolver(client.Resolver):
     def assess_and_log_reason(self, value, name):
         reason, response = self.assess_found_ips(value)
 
+        # We want to log the domain name only (e.g., the 'example.com' in
+        # 'my.example.com' or 'www.example.com') if the domain is permitted.
+        # Log the fqdn (e.g., the 'my.example.com' in 'my.example.com') if it
+        # is blocked.
         try:
-            self.log_reason(name, reason, False if not response else True)
+            if not response:
+                self.log_reason(name, reason, False)
+            else:
+                domain_name = self.get_domain_from_fqdn(name)
+
+                if domain_name is not None:
+                    self.log_reason(domain_name, reason, True)
+                else:
+                    raise ValueError(f"Could not get domain name from \"{name}\"")
+
         except BaseException as be:
             print(f"Could not log reason '{reason}' for name '{name}' due to exception '{be}'")
 
