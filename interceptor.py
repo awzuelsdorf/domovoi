@@ -54,7 +54,7 @@ class MapResolver(client.Resolver):
         # is blocked.
         try:
             if not response:
-                self.log_reason(name, reason, False)
+                self.log_reason(name.decode('utf-8'), reason, False)
             else:
                 domain_name = self.get_domain_from_fqdn(name.decode('utf-8'))
 
