@@ -1,0 +1,1 @@
+DB_FILE_NAME = "/home/pi/domovoi/domain_data.db"

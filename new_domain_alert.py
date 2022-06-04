@@ -1,8 +1,10 @@
 import os
 import time
+from constants import DB_FILE_NAME
 import twilio_utils
 from pi_hole_admin import PiHoleAdmin
 from unique_domains_windower import UniqueDomainsWindower
+import sqlite_utils
 
 def initialize_default_windower(url: str, file_name: str, types: list, only_domains: bool, pi_hole_password_env_var: str="PI_HOLE_PW"):
     if file_name is None:
@@ -39,24 +41,24 @@ def main():
     start = time.time()
 
     print(f"Starting blacklist assessment at {start} sec since epoch")
-    
-    previously_unseen_blocked_domains = list(windower_blacklist.get_previously_unseen_domains())
 
-    print(f"Found blocked domains {previously_unseen_blocked_domains}")
+    previously_unseen_blocked_domain_data = windower_blacklist.get_previously_unseen_domains()
 
-    twilio_utils.notify_of_new_domains(previously_unseen_blocked_domains, os.environ["ADMIN_PHONE"], os.environ["TWILIO_PHONE"], blocked=True)
-    
+    sqlite_utils.log_reason(DB_FILE_NAME, [{'domain': domain, 'first_time_seen': seen_time, 'last_time_seen': seen_time, 'permitted': False, "reason": "Blocked by PiHole"} for domain, seen_time in previously_unseen_blocked_domain_data.items()], updateable_fields=['permitted', 'reason', 'last_time_seen'])
+
+    sqlite_utils.notify_of_new_domains_in_interval(DB_FILE_NAME, windower_blacklist._window_oldest_bound, windower_blacklist._window_newest_bound, False, os.environ['ADMIN_PHONE'], os.environ['TWILIO_PHONE'])
+
     print(f"Finished blacklist assessment in {time.time() - start} sec")
 
     start = time.time()
 
     print(f"Starting whitelist assessment at {start} sec since epoch")
 
-    previously_unseen_permitted_domains = list(windower_whitelist.get_previously_unseen_domains())
+    # Don't log "permitted" domains (according to pihole API) to DB because interceptor.py has the final say on what is permitted, so no updates or inserts should be necessary on permitted domains from the PiHole API.
+    # Instead, advance the window and perform notification based on data already in DB.
+    windower_whitelist.update_window()
 
-    print(f"Found permitted domains {previously_unseen_permitted_domains}")
-
-    twilio_utils.notify_of_new_domains(previously_unseen_permitted_domains, os.environ["ADMIN_PHONE"], os.environ["TWILIO_PHONE"], blocked=False)
+    sqlite_utils.notify_of_new_domains_in_interval(DB_FILE_NAME, windower_whitelist._window_oldest_bound, windower_whitelist._window_newest_bound, True, os.environ['ADMIN_PHONE'], os.environ['TWILIO_PHONE'])
 
     print(f"Finished whitelist assessment in {time.time() - start} sec")
 

@@ -1,8 +1,6 @@
 from pi_hole_admin import PiHoleAdmin
 import datetime
 from copy import deepcopy
-import os
-import json
 import pickle
 
 class UniqueDomainsWindower(object):
@@ -53,17 +51,21 @@ class UniqueDomainsWindower(object):
         return windower
 
     def get_previously_unseen_domains(self):
-        previous_domains = set(self._unique_domains_window.keys())
+        previous_domains = {key: value for key, value in self._unique_domains_window.items()}
 
         self.update_window()
 
-        current_domains = set(self._unique_domains_window.keys())
+        current_domains = {key: value for key, value in self._unique_domains_window.items()}
 
         if self._verbose:
             print(len(previous_domains))
             print(len(current_domains))
 
-        newly_seen_domains = current_domains.difference(previous_domains)
+        newly_seen_domains = dict()
+
+        for current_domain, timestamp in current_domains.items():
+            if current_domain not in previous_domains:
+                newly_seen_domains[current_domain] = timestamp
 
         if self._verbose:
             print(newly_seen_domains)
