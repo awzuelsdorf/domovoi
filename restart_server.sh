@@ -7,7 +7,7 @@ if [ "$(ps -ef | grep runserver | grep -v grep)" == "" ]; then
 
 	cd ui
 
-	nohup python manage.py runserver 192.168.0.102:8010 &
+	python manage.py runserver 192.168.0.102:8010 &
 
 	popd
 fi
