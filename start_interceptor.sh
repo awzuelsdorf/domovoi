@@ -40,7 +40,7 @@ if [ "$IP2LOCATION_MODE" == "" ]; then
 fi
 
 if [ "$BLOCKED_COUNTRIES_LIST" == "" ]; then
-        export BLOCKED_COUNTRIES_LIST="ru,ir,cn,kp,hk,tr,bg,by,sy,la,kh,th,ph,vn,mm,mn,mk,mo,af,al,rs,ba,si,hr,iq,ae,sa,ye,eg,lb,cy,pk,in,bd,bt,bh,qa,kw,kz,kg,tj,tm,uz,am,az,lk,ro,me,md,cu"
+        export BLOCKED_COUNTRIES_LIST="ru,ir,cn,kp,hk,tr,bg,by,sy,la,kh,th,ph,vn,mm,mn,mk,mo,af,al,rs,ba,si,hr,iq,ae,sa,ye,eg,lb,cy,pk,in,bd,bt,bh,qa,kw,kz,kg,tj,tm,uz,am,az,lk,ro,me,md,cu,il,sk,br"
 fi
 
 if [ ! -f ".twilio_creds" ]; then
