@@ -8,6 +8,7 @@ import os
 import IP2Location
 import datetime
 from constants import DB_FILE_NAME
+from pi_hole_admin import PiHoleAdmin
 
 import sqlite_utils
 
@@ -18,6 +19,10 @@ PORT = int(os.environ["INTERCEPTOR_PORT"])
 class MapResolver(client.Resolver):
     def __init__(self, servers, blocked_countries_list, ip2location_bin_file_path='IP2LOCATION-LITE-DB1.BIN', ip2location_mode='SHARED_MEMORY', domain_data_db_file=DB_FILE_NAME):
         client.Resolver.__init__(self, servers=servers)
+
+        self.pi_hole_client = PiHoleAdmin(os.environ['PI_HOLE_URL'], pi_hole_password_env_var="PI_HOLE_PW")
+
+        self.last_whitelist_refresh_time = None
 
         self.blocked_countries_list = list(blocked_countries_list)
 
@@ -46,7 +51,18 @@ class MapResolver(client.Resolver):
         sqlite_utils.log_reason(self.domain_data_db_file, [{'domain': name, 'reason': reason, 'permitted': permitted, 'first_time_seen': right_now, 'last_time_seen': right_now}], ['permitted', 'reason', 'last_time_seen'])
 
     def assess_and_log_reason(self, value, name):
-        reason, response = self.assess_found_ips(value)
+        right_now = datetime.datetime.now(tz=datetime.timezone.utc)
+        if self.last_whitelist_refresh_time is None or right_now - self.last_whitelist_refresh_time > datetime.timedelta(seconds=self.whitelist_cache_sec)
+            do_refresh = True
+            self.last_whitelist_refresh_time = right_now
+        else:
+            do_refresh = False
+
+        applicable_whitelist_entries = self.pi_hole_client.get_whitelist_or_blacklist_entries_containing_domain(name.decode('utf-8'), ltype='white', bust_cache=do_refresh, wildcard=True)
+
+        print(f"Applicable whitelist entries for domain {name} are {applicable_whitelist_entries}")
+
+        reason, response = self.assess_found_ips(value, applicable_whitelist_entries is not None and applicable_whitelist_entries != [])
 
         # We want to log the domain name only (e.g., the 'example.com' in
         # 'my.example.com' or 'www.example.com') if the domain is permitted.
@@ -70,7 +86,7 @@ class MapResolver(client.Resolver):
 
         return response
 
-    def assess_found_ips(self, value):
+    def assess_found_ips(self, value, skip_country_validation):
         print(value)
 
         reason = None
@@ -88,18 +104,23 @@ class MapResolver(client.Resolver):
 
                                 if result:
                                     print(f"Match: '{result}' '{record}'")
-
-                                    country_code = self.ip2location_client.get_country_short(result[0])
-                                    if country_code in self.blocked_countries_list:
-                                        reason = f"Blocked IP '{result[0]}' with country code '{country_code}'. Blocked country codes were {', '.join(self.blocked_countries_list)}"
+                                    if skip_country_validation:
+                                        reason = "Skipping country validation due to applicable whitelist entries."
 
                                         print(reason)
-
-                                        return reason, []
                                     else:
-                                        reason = f"Permitted IP '{result[0]}' with country code '{country_code}'. Blocked country codes were {', '.join(self.blocked_countries_list)}"
+                                        country_code = self.ip2location_client.get_country_short(result[0])
 
-                                        print(reason)
+                                        if country_code in self.blocked_countries_list:
+                                            reason = f"Blocked IP '{result[0]}' with country code '{country_code}'. Blocked country codes were {', '.join(self.blocked_countries_list)}"
+
+                                            print(reason)
+
+                                            return reason, []
+                                        else:
+                                            reason = f"Permitted IP '{result[0]}' with country code '{country_code}'. Blocked country codes were {', '.join(self.blocked_countries_list)}"
+
+                                            print(reason)
                                 else:
                                     reason = f"No match: '{result}' '{record}'"
 
@@ -108,7 +129,7 @@ class MapResolver(client.Resolver):
 
 # Setup Twisted application with upstream dns server.
 application = service.Application('dnsserver', 1, 1)
-simpledns = MapResolver(servers=[(INTERCEPTOR_UPSTREAM_DNS_IP, INTERCEPTOR_UPSTREAM_DNS_PORT)], blocked_countries_list=[_.upper() for _ in os.environ["BLOCKED_COUNTRIES_LIST"].split(",")], ip2location_bin_file_path=os.environ["IP2LOCATION_BIN_FILE_PATH"], ip2location_mode=os.environ["IP2LOCATION_MODE"])
+simpledns = MapResolver(servers=[(INTERCEPTOR_UPSTREAM_DNS_IP, INTERCEPTOR_UPSTREAM_DNS_PORT)], blocked_countries_list=[_.upper() for _ in os.environ["BLOCKED_COUNTRIES_LIST"].split(",")], ip2location_bin_file_path=os.environ["IP2LOCATION_BIN_FILE_PATH"], ip2location_mode=os.environ["IP2LOCATION_MODE"], whitelist_cache_sec=int(os.environ["WHITELIST_CACHE_SEC"]))
 
 # Create protocols.
 f = server.DNSServerFactory(caches=[cache.CacheResolver()], clients=[simpledns])
