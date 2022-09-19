@@ -1,17 +1,26 @@
 import sqlite3
 import twilio_utils
 
-def notify_of_new_domains_in_interval(domain_data_db_file, oldest_timestamp, newest_timestamp, permitted, admin_phone, twilio_phone):
-    query = """select domain from domain_actions where first_time_seen >= ? and first_time_seen <= ? and permitted = ?"""
+def get_domains_in_interval(domain_data_db_file, oldest_timestamp, newest_timestamp, permitted, new_only):
+    if new_only:
+        query = """select domain from domain_actions where first_time_seen >= ? and first_time_seen <= ? and permitted = ?"""
+    else:
+        query = """select domain from domain_actions where last_time_seen >= ? and last_time_seen <= ? and permitted = ?"""
+
+    domains = list()
 
     with sqlite3.connect(domain_data_db_file) as cursor:
         cursor.row_factory = sqlite3.Row
         result = cursor.execute(query, (oldest_timestamp, newest_timestamp, permitted))
 
-        previously_unseen_domains = [row['domain'] for row in result]
+        domains = [row['domain'] for row in result]
 
-        twilio_utils.notify_of_new_domains(previously_unseen_domains, admin_phone, twilio_phone, blocked=not permitted)
+    return domains
 
+def notify_of_new_domains_in_interval(domain_data_db_file, oldest_timestamp, newest_timestamp, permitted, admin_phone, twilio_phone):
+    previously_unseen_domains = get_domains_in_interval(domain_data_db_file, oldest_timestamp, newest_timestamp, permitted, True)
+
+    twilio_utils.notify_of_new_domains(previously_unseen_domains, admin_phone, twilio_phone, blocked=not permitted)
 
 def log_reason(domain_data_db_file, values_dicts, updateable_fields=None):
     """

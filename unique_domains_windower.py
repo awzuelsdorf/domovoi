@@ -2,6 +2,7 @@ from pi_hole_admin import PiHoleAdmin
 import datetime
 from copy import deepcopy
 import pickle
+from constants import DB_FILE_NAME
 
 class UniqueDomainsWindower(object):
     """
@@ -29,9 +30,9 @@ class UniqueDomainsWindower(object):
         self._client = client
         self._unique_domains_file = unique_domains_file
 
-        self.save_to_file()
-
         self._unique_domains_window = {domain: self._window_newest_bound for domain in self._client.get_unique_domains_between_times(self._window_oldest_bound, self._window_newest_bound, self._types, self._excluded_dns_types, self._interval_sec, self._only_domains, self._verbose)}
+
+        self.save_to_file()
 
     @classmethod
     def deserialize(cls, client: PiHoleAdmin, unique_domains_file: str, verbose: bool=True):
@@ -47,6 +48,13 @@ class UniqueDomainsWindower(object):
             print(windower.__dict__)
 
         windower._client = client
+
+        if windower._types == PiHoleAdmin.ALL_PERMITTED:
+            windower._unique_domains_window = sqlite_utils.get_domains_in_interval(DB_FILE_NAME, windower._window_oldest_bound, windower._window_newest_bound, True, False)
+        elif windower._types == PiHoleAdmin.ALL_BLOCKED:
+            windower._unique_domains_window = sqlite_utils.get_domains_in_interval(DB_FILE_NAME, windower._window_oldest_bound, windower._window_newest_bound, False, False)
+        else:
+            raise ValueError(f"unknown windower types: {windower._types}")
 
         return windower
 
@@ -76,6 +84,8 @@ class UniqueDomainsWindower(object):
         # Don't save unique domains to a file since sqlite file should be
         # source of truth on what domains have been permitted and which
         # haven't.
+        unique_domains = deepcopy(self._unique_domains_window)
+
         self._unique_domains_window = None
 
         if self._unique_domains_file is not None:
@@ -83,6 +93,8 @@ class UniqueDomainsWindower(object):
 
             with open(self._unique_domains_file, 'wb') as unique_file:
                 pickle.dump(self, unique_file)
+
+        self._unique_domains_window = unique_domains
 
     def update_window(self):
         self._window_oldest_bound = deepcopy(self._window_newest_bound)
