@@ -73,6 +73,11 @@ class UniqueDomainsWindower(object):
         return newly_seen_domains
 
     def save_to_file(self):
+        # Don't save unique domains to a file since sqlite file should be
+        # source of truth on what domains have been permitted and which
+        # haven't.
+        self._unique_domains_window = None
+
         if self._unique_domains_file is not None:
             print(f"Saving domains to file {self._unique_domains_file}")
 
@@ -83,23 +88,5 @@ class UniqueDomainsWindower(object):
         self._window_oldest_bound = deepcopy(self._window_newest_bound)
 
         self._window_newest_bound = datetime.datetime.now(tz=datetime.timezone.utc)
-
-        cutoff = self._window_newest_bound - datetime.timedelta(seconds=self._window_size_sec)
-
-        if self._window_newest_bound - self._window_oldest_bound > datetime.timedelta(seconds=self._interval_sec):
-            if self._verbose:
-                print("Interval is insufficient")
-            new_domains = {domain: self._window_newest_bound for domain in self._client.get_unique_domains_between_times(self._window_oldest_bound, self._window_newest_bound, self._types, self._excluded_dns_types, self._interval_sec, self._only_domains, self._verbose)}
-        else:
-            if self._verbose:
-                print("Interval is sufficient")
-            new_domains = {domain: self._window_newest_bound for domain in self._client.get_unique_domains_between_times(self._window_newest_bound - datetime.timedelta(seconds=self._interval_sec), self._window_newest_bound, self._types, self._excluded_dns_types, self._interval_sec, self._only_domains, self._verbose)}
-
-        if self._verbose:
-            print(f"Found new domains {new_domains}")
-
-        self._unique_domains_window.update(new_domains)
-        
-        self._unique_domains_window = dict(filter(lambda item: item[1] >= cutoff, self._unique_domains_window.items()))
 
         self.save_to_file()
