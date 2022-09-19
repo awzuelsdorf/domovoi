@@ -52,7 +52,8 @@ class MapResolver(client.Resolver):
 
     def assess_and_log_reason(self, value, name):
         right_now = datetime.datetime.now(tz=datetime.timezone.utc)
-        if self.last_whitelist_refresh_time is None or right_now - self.last_whitelist_refresh_time > datetime.timedelta(seconds=self.whitelist_cache_sec)
+
+        if self.last_whitelist_refresh_time is None or right_now - self.last_whitelist_refresh_time > datetime.timedelta(seconds=self.whitelist_cache_sec):
             do_refresh = True
             self.last_whitelist_refresh_time = right_now
         else:
