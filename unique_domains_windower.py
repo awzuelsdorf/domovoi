@@ -36,6 +36,15 @@ class UniqueDomainsWindower(object):
         self.save_to_file()
 
     @classmethod
+    def _get_domains_in_interval(windower):
+        if windower._types == PiHoleAdmin.ALL_PERMITTED:
+            windower._unique_domains_window = {domain: windower._window_newest_bound for domain in sqlite_utils.get_domains_in_interval(DB_FILE_NAME, windower._window_oldest_bound, windower._window_newest_bound, True, False)}
+        elif windower._types == PiHoleAdmin.ALL_BLOCKED:
+            windower._unique_domains_window = {domain: windower._window_newest_bound for domain in sqlite_utils.get_domains_in_interval(DB_FILE_NAME, windower._window_oldest_bound, windower._window_newest_bound, False, False)}
+        else:
+            raise ValueError(f"unknown windower types: {windower._types}")
+
+    @classmethod
     def deserialize(cls, client: PiHoleAdmin, unique_domains_file: str, verbose: bool=True):
         if verbose:
             print(f"Loading domains from file {unique_domains_file}")
@@ -50,12 +59,7 @@ class UniqueDomainsWindower(object):
 
         windower._client = client
 
-        if windower._types == PiHoleAdmin.ALL_PERMITTED:
-            windower._unique_domains_window = {domain: windower._window_newest_bound for domain in sqlite_utils.get_domains_in_interval(DB_FILE_NAME, windower._window_oldest_bound, windower._window_newest_bound, True, False)}
-        elif windower._types == PiHoleAdmin.ALL_BLOCKED:
-            windower._unique_domains_window = {domain: windower._window_newest_bound for domain in sqlite_utils.get_domains_in_interval(DB_FILE_NAME, windower._window_oldest_bound, windower._window_newest_bound, False, False)}
-        else:
-            raise ValueError(f"unknown windower types: {windower._types}")
+        UniqueDomainsWindower._get_domains_in_interval(windower)
 
         return windower
 
@@ -63,6 +67,8 @@ class UniqueDomainsWindower(object):
         previous_domains = {key: value for key, value in self._unique_domains_window.items()}
 
         self.update_window()
+
+        UniqueDomainsWindower._get_domains_in_interval(self)
 
         current_domains = {key: value for key, value in self._unique_domains_window.items()}
 
