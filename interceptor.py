@@ -17,7 +17,7 @@ INTERCEPTOR_UPSTREAM_DNS_PORT = int(os.environ["INTERCEPTOR_UPSTREAM_DNS_SERVER_
 PORT = int(os.environ["INTERCEPTOR_PORT"])
 
 class MapResolver(client.Resolver):
-    def __init__(self, servers, blocked_countries_list, ip2location_bin_file_path='IP2LOCATION-LITE-DB1.BIN', ip2location_mode='SHARED_MEMORY', domain_data_db_file=DB_FILE_NAME, whitelist_cache_sec=30):
+    def __init__(self, servers, blocked_countries_list, ip2location_bin_file_path='IP2LOCATION-LITE-DB1.BIN', ip2location_mode='SHARED_MEMORY', domain_data_db_file=DB_FILE_NAME, whitelist_cache_sec=180):
         client.Resolver.__init__(self, servers=servers)
 
         self.pi_hole_client = PiHoleAdmin(os.environ['PI_HOLE_URL'], pi_hole_password_env_var="PI_HOLE_PW")

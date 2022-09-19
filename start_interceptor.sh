@@ -71,12 +71,12 @@ if [ "$ADMIN_PHONE" == "" ]; then
 fi
 
 if [ "$WHITELIST_CACHE_SEC" == "" ]; then
-        export WHITELIST_CACHE_SEC=30
+        export WHITELIST_CACHE_SEC=180
 fi
 
 if [ $WHITELIST_CACHE_SEC -lt 30 ]; then
-        echo "Invalid WHITELIST_CACHE_SEC  ('$WHITELIST_CACHE_SEC') environment variable defined. Please try a number at least 30 seconds."
-        exit 10
+        echo "Invalid WHITELIST_CACHE_SEC  ('$WHITELIST_CACHE_SEC') environment variable defined. Please set cache time to at least 30 seconds."
+        exit 9
 fi
 
 
