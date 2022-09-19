@@ -65,12 +65,12 @@ class PiHoleAdmin(object):
 
         for entry in self.get_whitelist_or_blacklist_entries(bust_cache=bust_cache, ltype=ltype_clean, only_enabled=only_enabled):
             if ltype_clean == 'white':
-                if wildcard and entry["type"] == 2 and (re.fullmatch(entry["domain"], domain) or domain == entry["domain"]):
+                if wildcard and entry["type"] == 2 and (re.match(entry["domain"], domain) or domain == entry["domain"]):
                     containing_entries.append(entry)
                 elif not wildcard and entry["type"] == 0 and entry["domain"] == domain:
                     containing_entries.append(entry)
             else:
-                if wildcard and entry["type"] == 3 and (re.fullmatch(entry["domain"], domain) or domain == entry["domain"]):
+                if wildcard and entry["type"] == 3 and (re.match(entry["domain"], domain) or domain == entry["domain"]):
                     containing_entries.append(entry)
                 elif not wildcard and entry["type"] == 1 and entry["domain"] == domain:
                     containing_entries.append(entry)
