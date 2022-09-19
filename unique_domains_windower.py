@@ -51,9 +51,9 @@ class UniqueDomainsWindower(object):
         windower._client = client
 
         if windower._types == PiHoleAdmin.ALL_PERMITTED:
-            windower._unique_domains_window = sqlite_utils.get_domains_in_interval(DB_FILE_NAME, windower._window_oldest_bound, windower._window_newest_bound, True, False)
+            windower._unique_domains_window = {domain: windower._window_newest_bound for domain in sqlite_utils.get_domains_in_interval(DB_FILE_NAME, windower._window_oldest_bound, windower._window_newest_bound, True, False)}
         elif windower._types == PiHoleAdmin.ALL_BLOCKED:
-            windower._unique_domains_window = sqlite_utils.get_domains_in_interval(DB_FILE_NAME, windower._window_oldest_bound, windower._window_newest_bound, False, False)
+            windower._unique_domains_window = {domain: windower._window_newest_bound for domain in sqlite_utils.get_domains_in_interval(DB_FILE_NAME, windower._window_oldest_bound, windower._window_newest_bound, False, False)}
         else:
             raise ValueError(f"unknown windower types: {windower._types}")
 
