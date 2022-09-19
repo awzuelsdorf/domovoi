@@ -56,6 +56,7 @@ class MapResolver(client.Resolver):
         right_now = datetime.datetime.now(tz=datetime.timezone.utc)
 
         if self.last_whitelist_refresh_time is None or right_now - self.last_whitelist_refresh_time > datetime.timedelta(seconds=self.whitelist_cache_sec):
+            print(f"Doing refresh. Current time is {right_now}, last time was {self.last_whitelist_refresh_time}")
             do_refresh = True
             self.last_whitelist_refresh_time = right_now
         else:
@@ -63,7 +64,8 @@ class MapResolver(client.Resolver):
 
         applicable_whitelist_entries = self.pi_hole_client.get_whitelist_or_blacklist_entries_containing_domain(name.decode('utf-8'), ltype='white', bust_cache=do_refresh, wildcard=True, only_enabled=True)
 
-        print(f"Applicable whitelist entries for domain {name} are {applicable_whitelist_entries}")
+        if do_refresh:
+            print(f"Applicable whitelist entries for domain {name} are {applicable_whitelist_entries}")
 
         reason, response = self.assess_found_ips(value, applicable_whitelist_entries is not None and applicable_whitelist_entries != [])
 
