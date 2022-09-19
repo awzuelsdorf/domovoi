@@ -3,6 +3,7 @@ import datetime
 from copy import deepcopy
 import pickle
 from constants import DB_FILE_NAME
+import sqlite_utils
 
 class UniqueDomainsWindower(object):
     """
