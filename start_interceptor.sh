@@ -19,8 +19,6 @@ fi
 
 export PYTHONPATH=$PYTHONPATH:/home/pi/domovoi:.
 
-set LOWER_WHITELIST_CACHE_SEC_LIMIT=30
-
 if [ "$INTERCEPTOR_PORT" == "" ]; then
         export INTERCEPTOR_PORT='47786'
 fi
@@ -73,14 +71,14 @@ if [ "$ADMIN_PHONE" == "" ]; then
 fi
 
 if [ "$WHITELIST_CACHE_SEC" == "" ]; then
-        echo "No WHITELIST_CACHE_SEC environment variable defined. Please try again."
-        exit 9
-else
-        if [ $WHITELIST_CACHE_SEC -lt $LOWER_WHITELIST_CACHE_SEC_LIMIT ]; then
-                echo "Invalid WHITELIST_CACHE_SEC  ('$WHITELIST_CACHE_SEC') environment variable defined. Please try a number at least $LOWER_WHITELIST_CACHE_SEC_LIMIT seconds."
-                exit 10
-        fi
+        export WHITELIST_CACHE_SEC=30
 fi
+
+if [ $WHITELIST_CACHE_SEC -lt 30 ]; then
+        echo "Invalid WHITELIST_CACHE_SEC  ('$WHITELIST_CACHE_SEC') environment variable defined. Please try a number at least 30 seconds."
+        exit 10
+fi
+
 
 if [ -f "./twistd.pid" ]; then
         /bin/rm -f ./twistd.pid

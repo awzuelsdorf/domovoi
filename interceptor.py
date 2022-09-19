@@ -17,12 +17,14 @@ INTERCEPTOR_UPSTREAM_DNS_PORT = int(os.environ["INTERCEPTOR_UPSTREAM_DNS_SERVER_
 PORT = int(os.environ["INTERCEPTOR_PORT"])
 
 class MapResolver(client.Resolver):
-    def __init__(self, servers, blocked_countries_list, ip2location_bin_file_path='IP2LOCATION-LITE-DB1.BIN', ip2location_mode='SHARED_MEMORY', domain_data_db_file=DB_FILE_NAME):
+    def __init__(self, servers, blocked_countries_list, ip2location_bin_file_path='IP2LOCATION-LITE-DB1.BIN', ip2location_mode='SHARED_MEMORY', domain_data_db_file=DB_FILE_NAME, whitelist_cache_sec=30):
         client.Resolver.__init__(self, servers=servers)
 
         self.pi_hole_client = PiHoleAdmin(os.environ['PI_HOLE_URL'], pi_hole_password_env_var="PI_HOLE_PW")
 
         self.last_whitelist_refresh_time = None
+
+        self.whitelist_cache_sec = whitelist_cache_sec
 
         self.blocked_countries_list = list(blocked_countries_list)
 
@@ -59,7 +61,7 @@ class MapResolver(client.Resolver):
         else:
             do_refresh = False
 
-        applicable_whitelist_entries = self.pi_hole_client.get_whitelist_or_blacklist_entries_containing_domain(name.decode('utf-8'), ltype='white', bust_cache=do_refresh, wildcard=True)
+        applicable_whitelist_entries = self.pi_hole_client.get_whitelist_or_blacklist_entries_containing_domain(name.decode('utf-8'), ltype='white', bust_cache=do_refresh, wildcard=True, only_enabled=True)
 
         print(f"Applicable whitelist entries for domain {name} are {applicable_whitelist_entries}")
 
