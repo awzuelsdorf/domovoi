@@ -35,7 +35,7 @@ class MapResolver(client.Resolver):
         self.domain_data_db_file = domain_data_db_file
 
     def get_domain_from_fqdn(self, fqdn):
-        result = tldextract.extract(fqdn)
+        result = tldextract.TLDExtract(cache_dir=os.environ['TLDEXTRACT_CACHE'])(fqdn)
 
         if result.suffix is not None and result.suffix.strip() != '':
             return f"{result.domain}.{result.suffix}"
