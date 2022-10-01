@@ -43,6 +43,12 @@ if [ "$BLOCKED_COUNTRIES_LIST" == "" ]; then
         export BLOCKED_COUNTRIES_LIST="ru,ir,cn,kp,hk,tr,bg,by,sy,la,kh,th,ph,vn,mm,mn,mk,mo,af,al,rs,ba,si,hr,iq,ae,sa,ye,eg,lb,cy,pk,in,bd,bt,bh,qa,kw,kz,kg,tj,tm,uz,am,az,lk,ro,me,md,cu,il,sk,br"
 fi
 
+if [ "$TLDEXTRACT_CACHE" == ""]; then
+        export TLDEXTRACT_CACHE="$pwd/.tldextract_cache_dir/"
+fi
+
+/usr/bin/mkdir -p $TLDEXTRACT_CACHE
+
 if [ ! -f ".twilio_creds" ]; then
         echo "No .twilio_creds file found. Please try again."
         exit 4

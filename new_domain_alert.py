@@ -1,7 +1,6 @@
 import os
 import time
 from constants import DB_FILE_NAME
-import twilio_utils
 from pi_hole_admin import PiHoleAdmin
 from unique_domains_windower import UniqueDomainsWindower
 import sqlite_utils

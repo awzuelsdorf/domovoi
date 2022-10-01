@@ -31,7 +31,7 @@ class UniqueDomainsWindower(object):
         self._client = client
         self._unique_domains_file = unique_domains_file
 
-        self._unique_domains_window = {domain: self._window_newest_bound for domain in self._client.get_unique_domains_between_times(self._window_oldest_bound, self._window_newest_bound, self._types, self._excluded_dns_types, self._interval_sec, self._only_domains, self._verbose)}
+        self._unique_domains_window = {domain: self._window_oldest_bound for domain in self._client.get_unique_domains_between_times(self._window_oldest_bound, self._window_newest_bound, self._types, self._excluded_dns_types, self._interval_sec, self._only_domains, self._verbose)}
 
         self.save_to_file()
 
