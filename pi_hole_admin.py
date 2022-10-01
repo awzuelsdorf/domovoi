@@ -363,7 +363,7 @@ class PiHoleAdmin(object):
             if not only_domains:
                 unique_domains.add(query['record'][1])
             else:
-                result = tldextract.extract(query['record'][1])
+                result = tldextract.TLDExtract(cache_dir=os.environ['TLDEXTRACT_CACHE'])(query['record'][1])
 
                 if result.suffix is not None and result.suffix.strip() != '':
                     unique_domains.add(f"{result.domain}.{result.suffix}")

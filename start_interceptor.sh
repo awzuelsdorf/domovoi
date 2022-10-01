@@ -47,7 +47,7 @@ if [ "$TLDEXTRACT_CACHE" == ""]; then
         export TLDEXTRACT_CACHE="$pwd/.tldextract_cache_dir/"
 fi
 
-/usr/bin/mkdir -p $TLDEXTRACT_CACHE
+/usr/bin/mkdir -p "$TLDEXTRACT_CACHE"
 
 if [ ! -f ".twilio_creds" ]; then
         echo "No .twilio_creds file found. Please try again."
