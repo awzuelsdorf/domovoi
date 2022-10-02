@@ -50,11 +50,11 @@ class PiHoleAdmin(object):
 
         return self._php_session_id
 
-    def get_whitelist_or_blacklist_entries_containing_domain(self, domain: str, ltype: str, bust_cache: bool=False, wildcard: bool=False):
+    def get_whitelist_or_blacklist_entries_containing_domain(self, domain: str, ltype: str, bust_cache: bool=False, wildcard: bool=False, only_enabled=False):
         """
         Determines whether the current whitelist or blacklist entries contain
-        the proposed domain. Returns list of all matching list entries. Does
-        not distinguish between enabled and disabled groups.
+        the proposed domain. Returns list of all matching list entries. Will
+        distinguish between enabled and disabled groups if only_enabled = True
         """
         if ltype is None or ltype.lower().strip() not in ['white', 'black']:
             raise ValueError(f"Invalid list type: \"{ltype}\"")
@@ -63,14 +63,14 @@ class PiHoleAdmin(object):
 
         containing_entries = []
 
-        for entry in self.get_whitelist_or_blacklist_entries(bust_cache=bust_cache, ltype=ltype_clean):
+        for entry in self.get_whitelist_or_blacklist_entries(bust_cache=bust_cache, ltype=ltype_clean, only_enabled=only_enabled):
             if ltype_clean == 'white':
-                if wildcard and entry["type"] == 2 and (re.fullmatch(entry["domain"], domain) or domain == entry["domain"]):
+                if wildcard and entry["type"] == 2 and (re.match(f".*{entry['domain']}", domain) or domain == entry["domain"]):
                     containing_entries.append(entry)
                 elif not wildcard and entry["type"] == 0 and entry["domain"] == domain:
                     containing_entries.append(entry)
             else:
-                if wildcard and entry["type"] == 3 and (re.fullmatch(entry["domain"], domain) or domain == entry["domain"]):
+                if wildcard and entry["type"] == 3 and (re.match(f".*{entry['domain']}", domain) or domain == entry["domain"]):
                     containing_entries.append(entry)
                 elif not wildcard and entry["type"] == 1 and entry["domain"] == domain:
                     containing_entries.append(entry)
@@ -122,7 +122,7 @@ class PiHoleAdmin(object):
         if verbose:
             print(msg)
 
-    def get_whitelist_or_blacklist_entries(self, ltype: str, bust_cache: bool=False):
+    def get_whitelist_or_blacklist_entries(self, ltype: str, bust_cache: bool=False, only_enabled=False):
         """
         Get entries from whitelist if list type `ltype` is 'white' or blacklist
         if list type `ltype` is 'black'.
@@ -156,11 +156,11 @@ class PiHoleAdmin(object):
         response_json = response.json()
 
         if ltype_clean == 'white':
-            self._whitelist_entries = [datum for datum in response_json.get("data", [])]
+            self._whitelist_entries = [datum for datum in response_json.get("data", []) if not only_enabled or int(datum['enabled']) != 0]
 
             return self._whitelist_entries
         if ltype_clean == 'black':
-            self._blacklist_entries = [datum for datum in response_json.get("data", [])]
+            self._blacklist_entries = [datum for datum in response_json.get("data", []) if not only_enabled or int(datum['enabled']) != 0]
 
             return self._blacklist_entries
 
@@ -363,7 +363,7 @@ class PiHoleAdmin(object):
             if not only_domains:
                 unique_domains.add(query['record'][1])
             else:
-                result = tldextract.extract(query['record'][1])
+                result = tldextract.TLDExtract(cache_dir=os.environ['TLDEXTRACT_CACHE'])(query['record'][1])
 
                 if result.suffix is not None and result.suffix.strip() != '':
                     unique_domains.add(f"{result.domain}.{result.suffix}")

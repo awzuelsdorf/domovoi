@@ -43,31 +43,38 @@ if [ "$BLOCKED_COUNTRIES_LIST" == "" ]; then
         export BLOCKED_COUNTRIES_LIST="ru,ir,cn,kp,hk,tr,bg,by,sy,la,kh,th,ph,vn,mm,mn,mk,mo,af,al,rs,ba,si,hr,iq,ae,sa,ye,eg,lb,cy,pk,in,bd,bt,bh,qa,kw,kz,kg,tj,tm,uz,am,az,lk,ro,me,md,cu,il,sk,br"
 fi
 
+if [ "$TLDEXTRACT_CACHE" == "" ]; then
+        export TLDEXTRACT_CACHE="/home/pi/domovoi/.tldextract_cache_dir/"
+fi
+
+/usr/bin/mkdir -p "$TLDEXTRACT_CACHE"
+
+chmod ugo+rwx -R "$TLDEXTRACT_CACHE"
+
 if [ ! -f ".twilio_creds" ]; then
         echo "No .twilio_creds file found. Please try again."
         exit 4
 fi
 
-source ./.twilio_creds;
+source ./.twilio_creds
 
-if [ "$TWILIO_PHONE" == "" ]; then
-        echo "No TWILIO_PHONE environment variable defined. Please try again."
+if [ "$PI_HOLE_PW" == "" ]; then
+        echo "No PI_HOLE_PW environment variable defined. Please try again."
         exit 5
 fi
 
-if [ "$TWILIO_ACCOUNT_SID" == "" ]; then
-    echo "No TWILIO_ACCOUNT_SID environment variable defined. Please try again."
-        exit 6
+if [ "$PI_HOLE_URL" == "" ]; then
+        echo "No PI_HOLE_URL environment variable defined. Please try again."
+        exit 5
 fi
 
-if [ "$TWILIO_AUTH_TOKEN" == "" ]; then
-        echo "No TWILIO_AUTH_TOKEN environment variable defined. Please try again."
-        exit 7
+if [ "$WHITELIST_CACHE_SEC" == "" ]; then
+        export WHITELIST_CACHE_SEC=180
 fi
 
-if [ "$ADMIN_PHONE" == "" ]; then
-        echo "No ADMIN_PHONE environment variable defined. Please try again."
-        exit 8
+if [ $WHITELIST_CACHE_SEC -lt 30 ]; then
+        echo "Invalid WHITELIST_CACHE_SEC  ('$WHITELIST_CACHE_SEC') environment variable defined. Please set cache time to at least 30 seconds."
+        exit 9
 fi
 
 if [ -f "./twistd.pid" ]; then
