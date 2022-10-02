@@ -38,9 +38,9 @@ class UniqueDomainsWindower(object):
     @classmethod
     def _get_domains_in_interval(cls, windower):
         if windower._types == PiHoleAdmin.ALL_PERMITTED:
-            windower._unique_domains_window = {domain: windower._window_newest_bound for domain in sqlite_utils.get_domains_in_interval(DB_FILE_NAME, windower._window_oldest_bound, windower._window_newest_bound, True, False)}
+            windower._unique_domains_window = {domain: windower._window_oldest_bound for domain in sqlite_utils.get_domains_in_interval(DB_FILE_NAME, windower._window_oldest_bound, windower._window_newest_bound, True, False)}
         elif windower._types == PiHoleAdmin.ALL_BLOCKED:
-            windower._unique_domains_window = {domain: windower._window_newest_bound for domain in sqlite_utils.get_domains_in_interval(DB_FILE_NAME, windower._window_oldest_bound, windower._window_newest_bound, False, False)}
+            windower._unique_domains_window = {domain: windower._window_oldest_bound for domain in sqlite_utils.get_domains_in_interval(DB_FILE_NAME, windower._window_oldest_bound, windower._window_newest_bound, False, False)}
         else:
             raise ValueError(f"unknown windower types: {windower._types}")
 
@@ -59,18 +59,42 @@ class UniqueDomainsWindower(object):
 
         windower._client = client
 
+        windower._window_oldest_bound = windower._window_newest_bound - datetime.timedelta(seconds=windower._window_size_sec)
+
         UniqueDomainsWindower._get_domains_in_interval(windower)
 
         return windower
 
+    def get_time_interval(self):
+        """
+        Get the current interval for this windower.
+        """
+        return (self._window_oldest_bound, self._window_newest_bound)
+
     def get_previously_unseen_domains(self):
+        older_bound, newer_bound = self.get_time_interval()
+
+        if self._verbose:
+            print(f"Old interval: [{older_bound}, {newer_bound}]")
+
         previous_domains = {key: value for key, value in self._unique_domains_window.items()}
 
+        if self._verbose:
+            print(f"Previous domains: {previous_domains}")
+
         self.update_window()
+        
+        older_bound, newer_bound = self.get_time_interval()
+
+        if self._verbose:
+            print(f"New interval: [{older_bound}, {newer_bound}]")
 
         UniqueDomainsWindower._get_domains_in_interval(self)
 
         current_domains = {key: value for key, value in self._unique_domains_window.items()}
+
+        if self._verbose:
+            print(f"Current domains: {current_domains}")
 
         if self._verbose:
             print(len(previous_domains))
