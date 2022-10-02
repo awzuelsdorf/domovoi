@@ -31,18 +31,13 @@ def main():
     print(f"Finished blacklist init in {time.time() - start} sec")
 
     start = time.time()
-    print(f"Starting whitelist init at {start} sec since epoch")
-
-    windower_whitelist = initialize_default_windower(os.environ['PI_HOLE_URL'], 'windower_whitelist.bin', PiHoleAdmin.ALL_PERMITTED, True)
-
-    print(f"Finished whitelist init in {time.time() - start} sec")
-
-    start = time.time()
 
     print(f"Starting blacklist assessment at {start} sec since epoch")
 
     previously_unseen_blocked_domain_data = windower_blacklist.get_previously_unseen_domains()
  
+    oldest_bound, newest_bound = windower_blacklist.get_time_interval()
+
     sqlite_utils.log_reason(DB_FILE_NAME, [{'domain': domain, 'first_time_seen': seen_time, 'last_time_seen': seen_time, 'permitted': False, "reason": "Blocked by PiHole"} for domain, seen_time in previously_unseen_blocked_domain_data.items()], updateable_fields=['permitted', 'reason', 'last_time_seen'])
 
     sqlite_utils.notify_of_new_domains_in_interval(DB_FILE_NAME, windower_blacklist._window_oldest_bound, windower_blacklist._window_newest_bound, False, os.environ['ADMIN_PHONE'], os.environ['TWILIO_PHONE'])
@@ -55,7 +50,7 @@ def main():
 
     # Don't log "permitted" domains (according to pihole API) to DB because interceptor.py has the final say on what is permitted, so no updates or inserts should be necessary on permitted domains from the PiHole API.
     # Instead, just perform notification based on data already in DB.
-    sqlite_utils.notify_of_new_domains_in_interval(DB_FILE_NAME, windower_whitelist._window_oldest_bound, windower_whitelist._window_newest_bound, True, os.environ['ADMIN_PHONE'], os.environ['TWILIO_PHONE'])
+    sqlite_utils.notify_of_new_domains_in_interval(DB_FILE_NAME, oldest_bound, newest_bound, True, os.environ['ADMIN_PHONE'], os.environ['TWILIO_PHONE'])
 
     print(f"Finished whitelist assessment in {time.time() - start} sec")
 

@@ -89,7 +89,8 @@ class UniqueDomainsWindower(object):
         if self._verbose:
             print(f"New interval: [{older_bound}, {newer_bound}]")
 
-        UniqueDomainsWindower._get_domains_in_interval(self)
+        # update via pi-hole here since we need to know what pi-hole has permitted or blocked (depending upon the dns types) in the updated interval.
+        self._unique_domains_window = {domain: self._window_oldest_bound for domain in self._client.get_unique_domains_between_times(self._window_oldest_bound, self._window_newest_bound, self._types, self._excluded_dns_types, self._interval_sec, self._only_domains, self._verbose)}
 
         current_domains = {key: value for key, value in self._unique_domains_window.items()}
 
