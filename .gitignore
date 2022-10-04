@@ -54,3 +54,6 @@ windower*.bin
 .*_creds
 twistd.pid
 .env
+IP2LOCATION-LITE-DB1.BIN
+domain_data.db
+.tldextract_cache_dir

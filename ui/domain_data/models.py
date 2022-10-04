@@ -10,7 +10,8 @@ from django.db import models
 import django_filters
 
 class DomainActions(models.Model):
-    domain = models.TextField(primary_key=True, blank=False)
+    name = models.TextField(primary_key=True, blank=False)
+    domain = models.TextField(blank=False, null=False)
     first_time_seen = models.DateTimeField(blank=False, null=False)
     last_time_seen = models.DateTimeField(blank=False, null=False)
     permitted = models.BooleanField(blank=False, null=True)
@@ -25,6 +26,7 @@ class DomainActionsFilter(django_filters.FilterSet):
         model = DomainActions
 
         fields = {
+            'name': ['icontains'],
             'domain': ['icontains'],
             'reason': ['icontains'],
             'permitted': ['exact'],

@@ -4,6 +4,7 @@ from constants import DB_FILE_NAME
 from pi_hole_admin import PiHoleAdmin
 from unique_domains_windower import UniqueDomainsWindower
 import sqlite_utils
+import tldextract
 
 def initialize_default_windower(url: str, file_name: str, types: list, only_domains: bool, pi_hole_password_env_var: str="PI_HOLE_PW"):
     if file_name is None:
@@ -13,12 +14,20 @@ def initialize_default_windower(url: str, file_name: str, types: list, only_doma
 
     if not os.path.isfile(file_name):
         print("Getting new default windower")
-        windower = UniqueDomainsWindower(client, 86400 * 30, types, ["PTR"], 3600, only_domains, True, None, file_name)
+        windower = UniqueDomainsWindower(client, 86400 * 30, types, ["PTR"], 3600, True, None, file_name)
     else:
         print("Getting previously saved default windower")
         windower = UniqueDomainsWindower.deserialize(client, file_name)
 
     return windower
+
+def get_domain_from_fqdn(fqdn, extractor):
+    result = extractor(fqdn)
+
+    if result.suffix is not None and result.suffix.strip() != '':
+        return f"{result.domain}.{result.suffix}"
+
+    return None
 
 def main():
     start = time.time()
@@ -38,7 +47,9 @@ def main():
  
     oldest_bound, newest_bound = windower_blacklist.get_time_interval()
 
-    sqlite_utils.log_reason(DB_FILE_NAME, [{'domain': domain, 'first_time_seen': seen_time, 'last_time_seen': seen_time, 'permitted': False, "reason": "Blocked by PiHole"} for domain, seen_time in previously_unseen_blocked_domain_data.items()], updateable_fields=['permitted', 'reason', 'last_time_seen'])
+    extractor = tldextract.TLDExtract(cache_dir=os.environ['TLDEXTRACT_CACHE'])
+
+    sqlite_utils.log_reason(DB_FILE_NAME, [{'domain': get_domain_from_fqdn(name, extractor), 'first_time_seen': seen_time, 'last_time_seen': seen_time, 'permitted': False, "reason": "Blocked by PiHole", "name": name} for name, seen_time in previously_unseen_blocked_domain_data.items()], updateable_fields=['permitted', 'reason', 'last_time_seen'])
 
     sqlite_utils.notify_of_new_domains_in_interval(DB_FILE_NAME, windower_blacklist._window_oldest_bound, windower_blacklist._window_newest_bound, False, os.environ['ADMIN_PHONE'], os.environ['TWILIO_PHONE'])
 

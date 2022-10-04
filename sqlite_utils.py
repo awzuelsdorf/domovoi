@@ -3,15 +3,21 @@ import twilio_utils
 
 def get_domains_in_interval(domain_data_db_file, oldest_timestamp, newest_timestamp, permitted, new_only):
     if new_only:
-        query = """select domain from domain_actions where first_time_seen >= ? and first_time_seen <= ? and permitted = ?"""
+        if permitted:
+            query = """select domain from domain_actions where permitted = ? group by domain having min(first_time_seen) >= ? and min(first_time_seen) <= ?"""
+        else:
+            query = """select name as domain from domain_actions where permitted = ? and first_time_seen >= ? and first_time_seen <= ?"""
     else:
-        query = """select domain from domain_actions where last_time_seen >= ? and last_time_seen <= ? and permitted = ?"""
+        if permitted:
+            query = """select domain from domain_actions where permitted = ? group by domain having min(last_time_seen) >= ? and min(last_time_seen) <= ?"""
+        else:
+            query = """select name as domain from domain_actions where permitted = ? and last_time_seen >= ? and last_time_seen <= ?"""
 
     domains = list()
 
     with sqlite3.connect(domain_data_db_file) as cursor:
         cursor.row_factory = sqlite3.Row
-        result = cursor.execute(query, (oldest_timestamp, newest_timestamp, permitted))
+        result = cursor.execute(query, (permitted, oldest_timestamp, newest_timestamp))
 
         domains = [row['domain'] for row in result]
 
@@ -26,7 +32,7 @@ def log_reason(domain_data_db_file, values_dicts, updateable_fields=None):
     """
     Log reason for blocking/allowing a domain
     """
-    required_fields = ['domain', 'first_time_seen', 'last_time_seen', 'permitted', 'reason']
+    required_fields = ['domain', 'name', 'first_time_seen', 'last_time_seen', 'permitted', 'reason']
 
     # Sanity checks
     for values_dict in values_dicts:
@@ -41,16 +47,17 @@ def log_reason(domain_data_db_file, values_dicts, updateable_fields=None):
 
     with sqlite3.connect(domain_data_db_file) as cursor:
         cursor.execute('''CREATE TABLE IF NOT EXISTS domain_actions 
-                        (domain TEXT PRIMARY KEY, 
+                        (name TEXT PRIMARY KEY, 
+                        domain TEXT, 
                         first_time_seen TIMESTAMP WITH TIME ZONE,
                         last_time_seen TIMESTAMP WITH TIME ZONE,
                         permitted BOOLEAN,
                         reason TEXT)''')
 
         if updateable_fields:
-            command = 'INSERT INTO domain_actions (' + (', '.join(required_fields)) + ') VALUES (?, ?, ?, ?, ?) ON CONFLICT (domain) DO UPDATE SET ' + (", ".join([f"{field} = CASE WHEN domain_actions.last_time_seen < EXCLUDED.last_time_seen THEN EXCLUDED.{field} ELSE domain_actions.{field} END" for field in updateable_fields]))
+            command = 'INSERT INTO domain_actions (' + (', '.join(required_fields)) + ') VALUES (' + (', '.join(['?' for _ in required_fields])) + ') ON CONFLICT (name) DO UPDATE SET ' + (", ".join([f"{field} = CASE WHEN domain_actions.last_time_seen < EXCLUDED.last_time_seen THEN EXCLUDED.{field} ELSE domain_actions.{field} END" for field in updateable_fields]))
         else:
-            command = 'INSERT INTO domain_actions (' + (', '.join(required_fields)) + ') VALUES (?, ?, ?, ?, ?) ON CONFLICT DO NOTHING'
+            command = 'INSERT INTO domain_actions (' + (', '.join(required_fields)) + ') VALUES (' + (', '.join(['?' for _ in required_fields])) + ') ON CONFLICT DO NOTHING'
 
         print(f"Running command \"{command}\"")
 

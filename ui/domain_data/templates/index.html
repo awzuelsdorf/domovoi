@@ -6,6 +6,7 @@
     {% if filter.qs %}
     <table>
     <tr>
+        <th>FQDN</th>
         <th>Domain</th>
         <th>Permitted</th>
         <th>Reason for Permit or Block</th>
@@ -14,6 +15,7 @@
     </tr>
         {% for obj in filter.qs %}
     <tr>
+            <td>{{ obj.name }}</td>
             <td>{{ obj.domain }}</td>
             <td>
                 {% if obj.permitted %}

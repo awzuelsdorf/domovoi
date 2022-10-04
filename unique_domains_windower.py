@@ -10,7 +10,7 @@ class UniqueDomainsWindower(object):
     An object for maintaining the state of a window of unique domains seen in a period of time relative to now.
     This is useful for determining what domains have been seen since the current window was computed.
     """
-    def __init__(self, client: PiHoleAdmin, window_size_sec: int, types: list, excluded_dns_types: list, interval_sec: int, only_domains: bool, verbose: bool, newest_bound: datetime.datetime=None, unique_domains_file: str=None):
+    def __init__(self, client: PiHoleAdmin, window_size_sec: int, types: list, excluded_dns_types: list, interval_sec: int, verbose: bool, newest_bound: datetime.datetime=None, unique_domains_file: str=None):
         if window_size_sec < 0:
             raise ValueError(f"Window size in seconds is invalid, should be greater than zero but was {window_size_sec}")
 
@@ -26,12 +26,11 @@ class UniqueDomainsWindower(object):
         self._types = types
         self._excluded_dns_types = excluded_dns_types
         self._interval_sec = interval_sec
-        self._only_domains = only_domains
         self._verbose = verbose
         self._client = client
         self._unique_domains_file = unique_domains_file
 
-        self._unique_domains_window = {domain: self._window_oldest_bound for domain in self._client.get_unique_domains_between_times(self._window_oldest_bound, self._window_newest_bound, self._types, self._excluded_dns_types, self._interval_sec, self._only_domains, self._verbose)}
+        self._unique_domains_window = {domain: self._window_oldest_bound for domain in self._client.get_unique_domains_between_times(self._window_oldest_bound, self._window_newest_bound, self._types, self._excluded_dns_types, self._interval_sec, self._verbose)}
 
         self.save_to_file()
 
@@ -90,7 +89,7 @@ class UniqueDomainsWindower(object):
             print(f"New interval: [{older_bound}, {newer_bound}]")
 
         # update via pi-hole here since we need to know what pi-hole has permitted or blocked (depending upon the dns types) in the updated interval.
-        self._unique_domains_window = {domain: self._window_oldest_bound for domain in self._client.get_unique_domains_between_times(self._window_oldest_bound, self._window_newest_bound, self._types, self._excluded_dns_types, self._interval_sec, self._only_domains, self._verbose)}
+        self._unique_domains_window = {domain: self._window_oldest_bound for domain in self._client.get_unique_domains_between_times(self._window_oldest_bound, self._window_newest_bound, self._types, self._excluded_dns_types, self._interval_sec, self._verbose)}
 
         current_domains = {key: value for key, value in self._unique_domains_window.items()}
 
