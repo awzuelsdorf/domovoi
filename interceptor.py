@@ -47,10 +47,10 @@ class MapResolver(client.Resolver):
         lookup_result.addCallback(lambda value: self.assess_and_log_reason(value, name))
         return lookup_result
 
-    def log_reason(self, name, reason, permitted):
+    def log_reason(self, name, domain, reason, permitted):
         right_now = datetime.datetime.now(tz=datetime.timezone.utc)
 
-        sqlite_utils.log_reason(self.domain_data_db_file, [{'domain': name, 'reason': reason, 'permitted': permitted, 'first_time_seen': right_now, 'last_time_seen': right_now}], ['permitted', 'reason', 'last_time_seen'])
+        sqlite_utils.log_reason(self.domain_data_db_file, [{'name': name, 'domain': domain, 'reason': reason, 'permitted': permitted, 'first_time_seen': right_now, 'last_time_seen': right_now}], ['permitted', 'reason', 'last_time_seen'])
 
     def assess_and_log_reason(self, value, name):
         right_now = datetime.datetime.now(tz=datetime.timezone.utc)
@@ -75,13 +75,18 @@ class MapResolver(client.Resolver):
         # is blocked.
         try:
             if not response:
-                self.log_reason(name.decode('utf-8'), reason, False)
+                domain_name = self.get_domain_from_fqdn(name.decode('utf-8'))
+
+                self.log_reason(name.decode('utf-8'), domain_name, reason, False)
+
+                print(f"Saving domain name \"{domain_name}\" that corresponds to FQDN \"{name}\" that was permitted")
             else:
                 domain_name = self.get_domain_from_fqdn(name.decode('utf-8'))
 
                 if domain_name is not None:
-                    print(f"Saving domain name \"{domain_name}\" that corresponds to FQDN \"{name}\" since name was permitted")
-                    self.log_reason(domain_name, reason, True)
+                    print(f"Saving domain name \"{domain_name}\" that corresponds to FQDN \"{name}\" that was permitted")
+
+                    self.log_reason(name.decode('utf-8'), domain_name, reason, True)
                 else:
                     raise ValueError(f"Could not get domain name from \"{name}\"")
 

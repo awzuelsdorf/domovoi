@@ -79,5 +79,17 @@ if [ "$PI_HOLE_URL" == "" ]; then
         exit 10
 fi
 
-python new_domain_alert.py 2>&1 | tee run_domain_alert.sh.log;
+if [ "$TLDEXTRACT_CACHE" == "" ]; then
+        export TLDEXTRACT_CACHE="/home/pi/domovoi/.tldextract_cache_dir/"
+fi
 
+/usr/bin/mkdir -p "$TLDEXTRACT_CACHE"
+
+chmod ugo+rwx -R "$TLDEXTRACT_CACHE"
+
+if [ ! -f ".twilio_creds" ]; then
+        echo "No .twilio_creds file found. Please try again."
+        exit 4
+fi
+
+python new_domain_alert.py 2>&1 | tee run_domain_alert.sh.log;

@@ -351,7 +351,7 @@ class PiHoleAdmin(object):
 
         return list(unique_queries.values())
 
-    def get_unique_domains_between_times(self, from_time: datetime.datetime, until_time: datetime.datetime, types: list, excluded_dns_types: list, interval_sec: int=3600, only_domains: bool=True, verbose: bool=False):
+    def get_unique_domains_between_times(self, from_time: datetime.datetime, until_time: datetime.datetime, types: list, excluded_dns_types: list, interval_sec: int=3600, verbose: bool=False):
         """
         Gets a list of unique domains that fit the given types and were seen between `from_time` and `until_time`
         """
@@ -360,25 +360,6 @@ class PiHoleAdmin(object):
         unique_domains = set()
 
         for query in queries:
-            if not only_domains:
-                unique_domains.add(query['record'][1])
-            else:
-                result = tldextract.TLDExtract(cache_dir=os.environ['TLDEXTRACT_CACHE'])(query['record'][1])
-
-                if result.suffix is not None and result.suffix.strip() != '':
-                    unique_domains.add(f"{result.domain}.{result.suffix}")
+            unique_domains.add(query['record'][1])
 
         return unique_domains
-
-    def get_unique_new_domains_between_times(self, new_domains_start_time: datetime.datetime, new_domains_until_time: datetime.datetime, old_domains_until_time: datetime.datetime, types: list, excluded_dns_types: list, interval_sec: int=3600, only_domains: bool=True, verbose: bool=False):
-        """
-        Returns a list of unique domains that were seen between
-        `new_domains_start_time` and `new_domains_until_time`
-        but were not seen after `new_domains_until_time` and
-        before `old_domains_until_time`.
-        """
-
-        new_unique_domains = self.get_unique_domains_between_times(new_domains_start_time, new_domains_until_time, types, excluded_dns_types, interval_sec, only_domains, verbose)
-        old_unique_domains = self.get_unique_domains_between_times(old_domains_until_time, new_domains_start_time, types, excluded_dns_types, interval_sec, only_domains, verbose)
-
-        return new_unique_domains.difference(old_unique_domains)
