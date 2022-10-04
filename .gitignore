@@ -56,4 +56,4 @@ twistd.pid
 .env
 IP2LOCATION-LITE-DB1.BIN
 domain_data.db
-.tdlextract_cache_dir
+.tldextract_cache_dir
