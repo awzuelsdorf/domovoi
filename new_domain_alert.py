@@ -21,6 +21,14 @@ def initialize_default_windower(url: str, file_name: str, types: list, only_doma
 
     return windower
 
+def get_domain_from_fqdn(fqdn, extractor):
+    result = extractor(fqdn)
+
+    if result.suffix is not None and result.suffix.strip() != '':
+        return f"{result.domain}.{result.suffix}"
+
+    return None
+
 def main():
     start = time.time()
     print(f"Starting blacklist init at {start} sec since epoch")
@@ -41,7 +49,7 @@ def main():
 
     extractor = tldextract.TLDExtract(cache_dir=os.environ['TLDEXTRACT_CACHE'])
 
-    sqlite_utils.log_reason(DB_FILE_NAME, [{'domain': extractor(name), 'first_time_seen': seen_time, 'last_time_seen': seen_time, 'permitted': False, "reason": "Blocked by PiHole", "name": name} for name, seen_time in previously_unseen_blocked_domain_data.items()], updateable_fields=['permitted', 'reason', 'last_time_seen'])
+    sqlite_utils.log_reason(DB_FILE_NAME, [{'domain': get_domain_from_fqdn(name, extractor), 'first_time_seen': seen_time, 'last_time_seen': seen_time, 'permitted': False, "reason": "Blocked by PiHole", "name": name} for name, seen_time in previously_unseen_blocked_domain_data.items()], updateable_fields=['permitted', 'reason', 'last_time_seen'])
 
     sqlite_utils.notify_of_new_domains_in_interval(DB_FILE_NAME, windower_blacklist._window_oldest_bound, windower_blacklist._window_newest_bound, False, os.environ['ADMIN_PHONE'], os.environ['TWILIO_PHONE'])
 
