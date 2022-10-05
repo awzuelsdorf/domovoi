@@ -19,10 +19,10 @@ def notify_of_new_domains(all_domains: list, recipient_phone: str, twilio_phone:
     domains = list()
 
     for domain in all_domains:
-        domains.append(f"https://duckduckgo.com/?q={domain}")
+        domains.append(f"https://duckduckgo.com/?q=%22{domain}%22")
 
         if len(domains) == batch_size:
-            body = f"{'Blocked' if blocked else 'Permitted'} {len(domains)} domains that have not been seen recently:\n" + ('\n'.join(domains))
+            body = f"{'Blocked' if blocked else 'Permitted'} {len(domains)} domain(s) that have/has not been seen recently:\n" + ('\n'.join(domains))
 
             message = client.messages.create(
                 body=body,
@@ -36,7 +36,7 @@ def notify_of_new_domains(all_domains: list, recipient_phone: str, twilio_phone:
             domains = list()
 
     if domains:
-        body = f"{'Blocked' if blocked else 'Permitted'} {len(domains)} domains that have not been seen recently:\n" + ('\n'.join(domains))
+        body = f"{'Blocked' if blocked else 'Permitted'} {len(domains)} domain(s) that have/has not been seen recently:\n" + ('\n'.join(domains))
 
         message = client.messages.create(
             body=body,
@@ -49,35 +49,3 @@ def notify_of_new_domains(all_domains: list, recipient_phone: str, twilio_phone:
 
     if num_domains != len(all_domains):
         raise ValueError(f"Received invalid number of domains. Expected {len(all_domains)} but got {num_domains}")
-
-def notify_of_ip_block(ip_address: str, country_code: str, recipient_phone: str, twilio_phone: str, retries: int=3, delay: int=5):
-    """
-    Send message if an IP address was blocked for being in a certain blocked IP range.
-    """
-    if not ip_address or not country_code:
-        print(f"Invalid parameters: IP address \"{ip_address}\", country code \"{country_code}\"")
-        return
-
-    account_sid = os.environ['TWILIO_ACCOUNT_SID']
-    auth_token = os.environ['TWILIO_AUTH_TOKEN']
-
-    body = f"Blocked IP address '{ip_address}' in blocked country '{country_code}'"
-
-    retry = 0
-
-    while retry < retries:
-        try:
-            client = Client(account_sid, auth_token)
-            message = client.messages.create(
-                body=body,
-                from_=twilio_phone,
-                to=recipient_phone
-            )
-
-            print(f"Sending message with SID: {message.sid}")
-            break
-        except requests.exceptions.ConnectionError as ce:
-            retry += 1
-            print(f"Received connection error {ce} . Retry {retry} / {retries} . Delay is {delay} seconds")
-            time.sleep(delay)
-
