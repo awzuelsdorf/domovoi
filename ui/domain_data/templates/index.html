@@ -1,4 +1,14 @@
 {% block content %}
+    <script src="https://code.jquery.com/jquery-3.6.0.js"></script>
+    <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.js"></script>
+    <script>
+    $( function() {
+        $("#id_last_time_seen__lte").datepicker("option", "dateFormat", "yy-mm-dd");
+        $("#id_last_time_seen__gte").datepicker("option", "dateFormat", "yy-mm-dd");
+        $("#id_first_time_seen__lte").datepicker("option", "dateFormat", "yy-mm-dd");
+        $("#id_first_time_seen__gte").datepicker("option", "dateFormat", "yy-mm-dd");
+    });
+    </script>
     <form method="get">
         {{ filter.form.as_p }}
         <input type="submit" />
