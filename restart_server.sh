@@ -1,7 +1,7 @@
 #! /bin/bash
 
 if [ "$(ps -ef | grep runserver | grep -v grep)" == "" ]; then
-	push /home/pi/domovoi
+	pushd /home/pi/domovoi
 
 	source .env/bin/activate
 
