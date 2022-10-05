@@ -33,6 +33,9 @@ class MapResolver(client.Resolver):
 
         self.ttl = 10
 
+        # key: ip address. Value: country code
+        self.cached_ip_lookups = dict()
+
         self.domain_data_db_file = domain_data_db_file
 
     def get_domain_from_fqdn(self, fqdn):
@@ -120,7 +123,10 @@ class MapResolver(client.Resolver):
 
                                         print(reason)
                                     else:
-                                        country_code = self.ip2location_client.get_country_short(result[0])
+                                        if result[0] not in self.cached_ip_lookups:
+                                            self.cached_ip_lookups[result[0]] = self.ip2location_client.get_country_short(result[0])
+
+                                        country_code = self.cached_ip_lookups[result[0]]
 
                                         if country_code in self.blocked_countries_list:
                                             reason = f"Blocked IP '{result[0]}' with country code '{country_code}'. Blocked country codes were {', '.join(self.blocked_countries_list)}"
