@@ -36,7 +36,7 @@
         </tr>
         {% for obj in filter.qs %}
         <tr>
-            <td>{{ obj.name }}</td>
+            <td class="text-break">{{ obj.name }}</td>
             <td>{{ obj.domain }}</td>
             <td>
                 {% if obj.permitted %}
