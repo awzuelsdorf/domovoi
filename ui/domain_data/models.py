@@ -12,9 +12,9 @@ import django_filters
 class DomainActions(models.Model):
     name = models.TextField(primary_key=True, blank=False)
     domain = models.TextField(blank=False, null=False)
-    first_time_seen = models.DateTimeField(blank=False, null=False, choices=((None, 'Yes Or No'), (True, 'Yes'), (False, 'No')))
+    first_time_seen = models.DateTimeField(blank=False, null=False)
     last_time_seen = models.DateTimeField(blank=False, null=False)
-    permitted = models.BooleanField(blank=False, null=True)
+    permitted = models.BooleanField(blank=False, null=True, choices=((None, 'Yes Or No'), (True, 'Yes'), (False, 'No')))
     reason = models.TextField(blank=False, null=False)
 
     class Meta:
