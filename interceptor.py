@@ -19,6 +19,7 @@ PORT = int(os.environ["INTERCEPTOR_PORT"])
 class MapResolver(client.Resolver):
     def __init__(self, servers, blocked_countries_list, ip2location_bin_file_path='IP2LOCATION-LITE-DB1.BIN', ip2location_mode='SHARED_MEMORY', domain_data_db_file=DB_FILE_NAME, whitelist_cache_sec=180):
         client.Resolver.__init__(self, servers=servers)
+        self.extractor = tldextract.TLDExtract(cache_dir=os.environ['TLDEXTRACT_CACHE'])
 
         self.pi_hole_client = PiHoleAdmin(os.environ['PI_HOLE_URL'], pi_hole_password_env_var="PI_HOLE_PW")
 
@@ -35,7 +36,7 @@ class MapResolver(client.Resolver):
         self.domain_data_db_file = domain_data_db_file
 
     def get_domain_from_fqdn(self, fqdn):
-        result = tldextract.TLDExtract(cache_dir=os.environ['TLDEXTRACT_CACHE'])(fqdn)
+        result = self.extractor(fqdn)
 
         if result.suffix is not None and result.suffix.strip() != '':
             return f"{result.domain}.{result.suffix}"
