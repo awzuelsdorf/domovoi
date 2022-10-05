@@ -14,7 +14,7 @@ class DomainActions(models.Model):
     domain = models.TextField(blank=False, null=False)
     first_time_seen = models.DateTimeField(blank=False, null=False)
     last_time_seen = models.DateTimeField(blank=False, null=False)
-    permitted = models.BooleanField(blank=False, null=True, choices=((None, 'Yes Or No'), (True, 'Yes'), (False, 'No')))
+    permitted = models.BooleanField(blank=False, null=True, choices=((True, 'Yes'), (False, 'No')))
     reason = models.TextField(blank=False, null=False)
 
     class Meta:
