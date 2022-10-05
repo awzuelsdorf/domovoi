@@ -28,16 +28,15 @@
     {% if filter.qs %}
     <table class="table table-striped table-responsive">
         <tr>
-            <th>FQDN</th>
             <th>Domain</th>
             <th>Permitted</th>
             <th>Reason for Permit or Block</th>
             <th>Last Time Seen</th>
             <th>First Time Seen</th>
+            <th>FQDN</th>
         </tr>
         {% for obj in filter.qs %}
         <tr>
-            <td>{{ obj.name }}</td>
             <td>{{ obj.domain }}</td>
             <td>
                 {% if obj.permitted %}
@@ -49,6 +48,7 @@
             <td>{{ obj.reason }}</td>
             <td>{{ obj.last_time_seen }}</td>
             <td>{{ obj.first_time_seen }}</td>
+            <td>{{ obj.name }}</td>
         </tr>
         {% endfor %}
     </table>
