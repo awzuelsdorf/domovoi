@@ -19,7 +19,7 @@ def notify_of_new_domains(all_domains: list, recipient_phone: str, twilio_phone:
     domains = list()
 
     for domain in all_domains:
-        domains.append(f"https://duckduckgo.com/?q=\"{domain}\"")
+        domains.append(f"https://duckduckgo.com/?q=%22{domain}%22")
 
         if len(domains) == batch_size:
             body = f"{'Blocked' if blocked else 'Permitted'} {len(domains)} domain(s) that have/has not been seen recently:\n" + ('\n'.join(domains))
