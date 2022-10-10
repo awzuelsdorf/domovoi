@@ -12,6 +12,8 @@ from pi_hole_admin import PiHoleAdmin
 
 import sqlite_utils
 
+import pylru
+
 INTERCEPTOR_UPSTREAM_DNS_IP = os.environ["INTERCEPTOR_UPSTREAM_DNS_SERVER_IP"]
 INTERCEPTOR_UPSTREAM_DNS_PORT = int(os.environ["INTERCEPTOR_UPSTREAM_DNS_SERVER_PORT"])
 PORT = int(os.environ["INTERCEPTOR_PORT"])
@@ -34,7 +36,7 @@ class MapResolver(client.Resolver):
         self.ttl = 10
 
         # key: ip address. Value: country code
-        self.cached_ip_lookups = dict()
+        self.cached_ip_lookups = pylru.lrucache(10000)
 
         self.domain_data_db_file = domain_data_db_file
 
