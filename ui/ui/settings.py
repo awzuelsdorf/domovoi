@@ -12,6 +12,8 @@ https://docs.djangoproject.com/en/3.2/ref/settings/
 import base64
 import os
 from pathlib import Path
+import subprocess
+import shlex
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -26,8 +28,14 @@ SECRET_KEY = base64.b64encode(os.urandom(90)).decode('utf-8')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get('DEBUG', True)
 
-ALLOWED_HOSTS = ['127.0.0.1', '192.168.0.102']
+host_ip = subprocess.run(shlex.split("hostname -I"), capture_output=True, universal_newlines=True).stdout
 
+if host_ip is None or str(host_ip).strip() == '':
+    raise ValueError(f"'Received invalid host IP address '{host_ip}'")
+else:
+    host_ip = host_ip.split(' ')[0]
+
+ALLOWED_HOSTS = ['127.0.0.1', host_ip]
 
 # Application definition
 
