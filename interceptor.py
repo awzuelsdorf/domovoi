@@ -146,6 +146,18 @@ class MapResolver(client.Resolver):
                                     print(reason)
         return reason, value
 
+class LoggingDNSServerFactory(server.DNSServerFactory):
+    def __init__(self, authorities=None, caches=None, clients=None, verbose=0):
+        super().__init__(self, authorities=authorities, caches=caches, clients=clients, verbose=verbose)
+
+    def gotResolverResponse(self, response, protocol, message, address):
+        print(f"Got response {response} from protocol {protocol}, message {message}, address {address}")
+        super().getResolverResponse(response, protocol, message, address)
+
+    def gotResolverError(self, failure, protocol, message, address):
+        print(f"Got failure {failure} from protocol {protocol}, message {message}, address {address}")
+        super().gotResolverError(failure, protocol, message, address)
+
 # Setup Twisted application with upstream dns server.
 application = service.Application('dnsserver', 1, 1)
 simpledns = MapResolver(servers=[(INTERCEPTOR_UPSTREAM_DNS_IP, INTERCEPTOR_UPSTREAM_DNS_PORT)], blocked_countries_list=[_.upper() for _ in os.environ["BLOCKED_COUNTRIES_LIST"].split(",")], ip2location_bin_file_path=os.environ["IP2LOCATION_BIN_FILE_PATH"], ip2location_mode=os.environ["IP2LOCATION_MODE"], whitelist_cache_sec=int(os.environ["WHITELIST_CACHE_SEC"]))
