@@ -122,10 +122,12 @@ class PiHoleAdmin(object):
         if verbose:
             print(msg)
 
-    def get_whitelist_or_blacklist_entries(self, ltype: str, bust_cache: bool=False, only_enabled=False):
+    def get_whitelist_or_blacklist_entries(self, ltype: str, bust_cache: bool = False, only_enabled: bool = False):
         """
         Get entries from whitelist if list type `ltype` is 'white' or blacklist
-        if list type `ltype` is 'black'.
+        if list type `ltype` is 'black'. Use cached entries if no entries
+        have been found yet or if `bush_cache` is false. If `only_enabled` is true, then omit
+        any disabled entries that otherwise would have been included.
         """
         if ltype is None or ltype.lower().strip() not in ['white', 'black']:
             raise ValueError(f"Invalid list type: \"{ltype}\"")
@@ -166,9 +168,12 @@ class PiHoleAdmin(object):
 
         return None
 
-    def enable_domain_on_list(self, entry, ltype, groups="0"):
+    def enable_domain_on_list(self, entry: dict, ltype: str, groups: str = "0"):
         """
-        Enable domain on whitelist or blacklist. Assumes domain is already present in the list.
+        Enable domain on whitelist (ltype='white') or blacklist (ltype='black') and
+        update group(s). Will prefer `groups` over `entry['groups']` if `groups` is
+        not null, prefers `entry['groups']` if `groups` is null. Assumes domain is
+        already present in the list.
         """
         if ltype is None or ltype.lower().strip() not in ['white', 'black']:
             raise ValueError(f"Invalid list type {ltype}")
@@ -177,7 +182,7 @@ class PiHoleAdmin(object):
 
         headers = {'Accept': 'application/json, text/javascript, */*; q=0.01', 'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8', 'Cookie': f"PHPSESSID={self.get_php_session_id()}"}
 
-        data = {'action': 'edit_domain', 'id': entry["id"], 'type': entry['type'], 'comment': entry['comment'], 'status': '1', 'groups[]': groups, 'token': self.get_groups_domains_token(ltype_clean)}
+        data = {'action': 'edit_domain', 'id': entry["id"], 'type': entry['type'], 'comment': entry['comment'], 'status': '1', 'groups[]': groups if groups is not None else entry['groups'], 'token': self.get_groups_domains_token(ltype_clean)}
 
         response = requests.post(f"{self._url}/scripts/pi-hole/php/groups.php", headers=headers, data=data)
 
@@ -185,7 +190,7 @@ class PiHoleAdmin(object):
 
         return response_json
 
-    def add_domain_to_list(self, domain: str, ltype: str, wildcard: bool=False, comment: str="Added by PiHoleAdmin", verbose: bool=False):
+    def add_domain_to_list(self, domain: str, ltype: str, wildcard: bool=False, comment: str="Added by PiHoleAdmin", verbose: bool=False, groups: list = None):
         """
         Add domain to list if it's not there or enables it if it isn't present already. Return response dict
         """
@@ -240,9 +245,9 @@ class PiHoleAdmin(object):
                     etype = '3W'
             else:
                 if ltype_clean == 'white':
-                    etype = '0'
+                    etype = '2'
                 else:
-                    etype = '1'
+                    etype = '3'
 
             try:
                 response = requests.post(f"{self._url}/scripts/pi-hole/php/groups.php", headers={'Accept': 'application/json, text/javascript, */*; q=0.01', 'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8', 'Cookie': f"PHPSESSID={php_session_id}"}, data={'action': 'add_domain', 'domain': domain, 'type': etype, 'comment': comment, 'token': groups_domains_token})
