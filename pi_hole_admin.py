@@ -153,16 +153,16 @@ class PiHoleAdmin(object):
         if groups_domains_token is None:
             raise RuntimeError("Groups domains token not found.")
 
-        response = requests.post(f"{self._url}/scripts/pi-hole/php/groups.php", headers={'Accept': 'application/json', 'Content-Type': 'application/x-www-form-urlencoded', 'Cookie': f"PHPSESSID={php_session_id}"}, data={'action': 'get_domains', 'showtype': ltype_clean, 'token': groups_domains_token})
+        response = requests.post(f"{self._url}/scripts/pi-hole/php/groups.php", headers={'Accept': 'application/json', 'Content-Type': 'application/x-www-form-urlencoded', 'Cookie': f"PHPSESSID={php_session_id}"}, data={'action': 'get_domains', 'token': groups_domains_token})
 
         response_json = response.json()
 
         if ltype_clean == 'white':
-            self._whitelist_entries = [datum for datum in response_json.get("data", []) if not only_enabled or int(datum['enabled']) != 0]
+            self._whitelist_entries = [datum for datum in response_json.get("data", []) if (not only_enabled or int(datum['enabled']) != 0) and int(datum['type']) in (0, 2)]
 
             return self._whitelist_entries
         if ltype_clean == 'black':
-            self._blacklist_entries = [datum for datum in response_json.get("data", []) if not only_enabled or int(datum['enabled']) != 0]
+            self._blacklist_entries = [datum for datum in response_json.get("data", []) if (not only_enabled or int(datum['enabled']) != 0) and int(datum['type']) in (1, 3)]
 
             return self._blacklist_entries
 
@@ -240,14 +240,14 @@ class PiHoleAdmin(object):
 
             if wildcard:
                 if ltype_clean == 'white':
-                    etype = '2W'
-                else:
-                    etype = '3W'
-            else:
-                if ltype_clean == 'white':
                     etype = '2'
                 else:
                     etype = '3'
+            else:
+                if ltype_clean == 'white':
+                    etype = '0'
+                else:
+                    etype = '1'
 
             try:
                 response = requests.post(f"{self._url}/scripts/pi-hole/php/groups.php", headers={'Accept': 'application/json, text/javascript, */*; q=0.01', 'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8', 'Cookie': f"PHPSESSID={php_session_id}"}, data={'action': 'add_domain', 'domain': domain, 'type': etype, 'comment': comment, 'token': groups_domains_token})
