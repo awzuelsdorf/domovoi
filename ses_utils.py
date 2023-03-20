@@ -1,5 +1,5 @@
-from twilio.rest import Client
 import os
+import boto3
 
 def notify_of_new_domains(all_domains: list, admin_email: str, blocked: bool=True, batch_size=50):
     """
@@ -10,9 +10,7 @@ def notify_of_new_domains(all_domains: list, admin_email: str, blocked: bool=Tru
 
     num_domains = 0
 
-    access_key_id = os.environ['SES_ACCESS_KEY_ID']
-    secret_access_key = os.environ['SES_SECRET_ACCESS_KEY']
-    client = Client(access_key_id, secret_access_key)
+    client = boto3.client('ses', region_name='us-east-2')
 
     domains = list()
 

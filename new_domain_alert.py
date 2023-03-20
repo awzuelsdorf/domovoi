@@ -51,7 +51,7 @@ def main():
 
     sqlite_utils.log_reason(DB_FILE_NAME, [{'domain': get_domain_from_fqdn(name, extractor), 'first_time_seen': seen_time, 'last_time_seen': seen_time, 'permitted': False, "reason": "Blocked by PiHole", "name": name} for name, seen_time in previously_unseen_blocked_domain_data.items()], updateable_fields=['permitted', 'reason', 'last_time_seen'])
 
-    sqlite_utils.notify_of_new_domains_in_interval(DB_FILE_NAME, windower_blacklist._window_oldest_bound, windower_blacklist._window_newest_bound, False, os.environ['ADMIN_PHONE'], os.environ['TWILIO_PHONE'])
+    sqlite_utils.notify_of_new_domains_in_interval(DB_FILE_NAME, windower_blacklist._window_oldest_bound, windower_blacklist._window_newest_bound, False, os.environ['ADMIN_PHONE'], os.environ['TWILIO_PHONE'], os.environ['SES_EMAIL_ADMIN'])
 
     print(f"Finished blacklist assessment in {time.time() - start} sec")
 
@@ -61,7 +61,7 @@ def main():
 
     # Don't log "permitted" domains (according to pihole API) to DB because interceptor.py has the final say on what is permitted, so no updates or inserts should be necessary on permitted domains from the PiHole API.
     # Instead, just perform notification based on data already in DB.
-    sqlite_utils.notify_of_new_domains_in_interval(DB_FILE_NAME, oldest_bound, newest_bound, True, os.environ['ADMIN_PHONE'], os.environ['TWILIO_PHONE'])
+    sqlite_utils.notify_of_new_domains_in_interval(DB_FILE_NAME, oldest_bound, newest_bound, True, os.environ['ADMIN_PHONE'], os.environ['TWILIO_PHONE'], os.environ['SES_EMAIL_ADMIN'])
 
     print(f"Finished whitelist assessment in {time.time() - start} sec")
 

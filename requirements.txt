@@ -8,3 +8,4 @@ IP2Location==8.8.1
 django==3.2.13
 django-filter==21.1
 pylru==1.2.1
+boto3==1.26.94
