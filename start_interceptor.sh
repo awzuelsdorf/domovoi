@@ -81,7 +81,7 @@ if [ -f "./twistd.pid" ]; then
         /bin/rm -f ./twistd.pid
 fi
 
-if [ "$GROUP_IDS" != ""]; then
+if [ "$GROUP_IDS" == "" ]; then
         export GROUP_IDS='0'
 fi
 

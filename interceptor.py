@@ -70,10 +70,12 @@ class MapResolver(client.Resolver):
 
         applicable_whitelist_entries = self.pi_hole_client.get_whitelist_or_blacklist_entries_containing_domain(name.decode('utf-8'), ltype='white', bust_cache=do_refresh, wildcard=True, only_enabled=True, groups=re.split(r',', os.environ['GROUP_IDS']))
 
-        if do_refresh:
+        has_whitelist_entry = applicable_whitelist_entries is not None and applicable_whitelist_entries != []
+
+        if do_refresh or has_whitelist_entry:
             print(f"Applicable whitelist entries for domain {name} are {applicable_whitelist_entries}")
 
-        reason, response = self.assess_found_ips(value, applicable_whitelist_entries is not None and applicable_whitelist_entries != [])
+        reason, response = self.assess_found_ips(value, has_whitelist_entry)
 
         # We want to log the domain name only (e.g., the 'example.com' in
         # 'my.example.com' or 'www.example.com') if the domain is permitted.
