@@ -5,7 +5,7 @@ def notify_of_new_domains(all_domains: list, recipient_phone: str, twilio_phone:
     """
     Send message if a set of new domains has been seen.
     """
-    if not all_domains or not os.environ.get('TWILIO_ENABLED'):
+    if not all_domains or int(os.environ.get('TWILIO_ENABLED', 0)) != 0:
         return
 
     num_domains = 0

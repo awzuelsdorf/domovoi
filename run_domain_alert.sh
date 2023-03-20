@@ -93,7 +93,7 @@ if [ ! -f ".twilio_creds" ]; then
 fi
 
 # Comment this line if you don't want Twilio.
-#export TWILIO_ENABLED=1
+export TWILIO_ENABLED=0
 export SES_ENABLED=1
 
 python new_domain_alert.py 2>&1 | tee run_domain_alert.sh.log;

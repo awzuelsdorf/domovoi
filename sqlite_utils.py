@@ -36,9 +36,9 @@ def notify_of_new_domains_in_interval_ses(domain_data_db_file, oldest_timestamp,
     ses_utils.notify_of_new_domains(previously_unseen_domains, admin_email, blocked=not permitted)
 
 def notify_of_new_domains_in_interval(domain_data_db_file, oldest_timestamp, newest_timestamp, permitted, admin_phone=None, twilio_phone=None, admin_email=None):
-    if int(os.environ['TWILIO_ENABLED']) != 0:
+    if int(os.environ.get('TWILIO_ENABLED', 0)) != 0:
         notify_of_new_domains_in_interval_twilio(domain_data_db_file, oldest_timestamp, newest_timestamp, permitted, admin_phone, twilio_phone)
-    elif int(os.environ['SES_ENABLED']) != 0:
+    elif int(os.environ.get('SES_ENABLED', 0)) != 0:
         notify_of_new_domains_in_interval_ses(domain_data_db_file, oldest_timestamp, newest_timestamp, permitted, admin_email)
     else:
         print('No alert method enabled')
