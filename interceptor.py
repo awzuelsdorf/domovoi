@@ -68,7 +68,7 @@ class MapResolver(client.Resolver):
         else:
             do_refresh = False
 
-        applicable_whitelist_entries = self.pi_hole_client.get_whitelist_or_blacklist_entries_containing_domain(name.decode('utf-8'), ltype='white', bust_cache=do_refresh, wildcard=True, only_enabled=True)
+        applicable_whitelist_entries = self.pi_hole_client.get_whitelist_or_blacklist_entries_containing_domain(name.decode('utf-8'), ltype='white', bust_cache=do_refresh, wildcard=True, only_enabled=True, groups=re.split(r',', os.environ['GROUP_IDS']))
 
         if do_refresh:
             print(f"Applicable whitelist entries for domain {name} are {applicable_whitelist_entries}")

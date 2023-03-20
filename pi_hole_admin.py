@@ -50,7 +50,7 @@ class PiHoleAdmin(object):
 
         return self._php_session_id
 
-    def get_whitelist_or_blacklist_entries_containing_domain(self, domain: str, ltype: str, bust_cache: bool=False, wildcard: bool=False, only_enabled=False):
+    def get_whitelist_or_blacklist_entries_containing_domain(self, domain: str, ltype: str, bust_cache: bool=False, wildcard: bool=False, only_enabled=False, groups=None):
         """
         Determines whether the current whitelist or blacklist entries contain
         the proposed domain. Returns list of all matching list entries. Will
@@ -63,7 +63,7 @@ class PiHoleAdmin(object):
 
         containing_entries = []
 
-        for entry in self.get_whitelist_or_blacklist_entries(bust_cache=bust_cache, ltype=ltype_clean, only_enabled=only_enabled):
+        for entry in self.get_whitelist_or_blacklist_entries(bust_cache=bust_cache, ltype=ltype_clean, only_enabled=only_enabled, groups=groups):
             if ltype_clean == 'white':
                 if wildcard and entry["type"] == 2 and (re.match(f".*{entry['domain']}", domain) or domain == entry["domain"]):
                     containing_entries.append(entry)
@@ -122,7 +122,7 @@ class PiHoleAdmin(object):
         if verbose:
             print(msg)
 
-    def get_whitelist_or_blacklist_entries(self, ltype: str, bust_cache: bool = False, only_enabled: bool = False):
+    def get_whitelist_or_blacklist_entries(self, ltype: str, bust_cache: bool = False, only_enabled: bool = False, groups: list=None):
         """
         Get entries from whitelist if list type `ltype` is 'white' or blacklist
         if list type `ltype` is 'black'. Use cached entries if no entries
@@ -158,11 +158,11 @@ class PiHoleAdmin(object):
         response_json = response.json()
 
         if ltype_clean == 'white':
-            self._whitelist_entries = [datum for datum in response_json.get("data", []) if (not only_enabled or int(datum['enabled']) != 0) and int(datum['type']) in (0, 2)]
+            self._whitelist_entries = [datum for datum in response_json.get("data", []) if (not only_enabled or int(datum['enabled']) != 0) and int(datum['type']) in (0, 2) and (groups is None or set([str(g) for g in groups]).intersection([dg for dg in datum['groups']]))]
 
             return self._whitelist_entries
         if ltype_clean == 'black':
-            self._blacklist_entries = [datum for datum in response_json.get("data", []) if (not only_enabled or int(datum['enabled']) != 0) and int(datum['type']) in (1, 3)]
+            self._blacklist_entries = [datum for datum in response_json.get("data", []) if (not only_enabled or int(datum['enabled']) != 0) and int(datum['type']) in (1, 3) and (groups is None or set([str(g) for g in groups]).intersection([dg for dg in datum['groups']]))]
 
             return self._blacklist_entries
 
@@ -232,7 +232,7 @@ class PiHoleAdmin(object):
         elif disabled_groups:
             self._printv(f"Enabling domain {domain} with wildcard {wildcard}, already in disabled group: {disabled_groups[0]}.", verbose)
 
-            return self.enable_domain_on_list(disabled_groups[0], ltype_clean)
+            return self.enable_domain_on_list(disabled_groups[0], ltype_clean, groups = groups)
         else:
             self._printv(f"Adding domain {domain} with wildcard {wildcard} since it is not in an enabled or disabled whitelisted group.", verbose)
 
