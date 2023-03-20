@@ -158,12 +158,10 @@ class PiHoleAdmin(object):
         response_json = response.json()
 
         if ltype_clean == 'white':
-            self._whitelist_entries = [datum for datum in response_json.get("data", []) if (not only_enabled or int(datum['enabled']) != 0) and int(datum['type']) in (0, 2) and (groups is None or set([str(g) for g in groups]).intersection([dg for dg in datum['groups']]))]
-
+            self._whitelist_entries = [datum for datum in response_json.get("data", []) if (not only_enabled or int(datum['enabled']) != 0) and int(datum['type']) in (0, 2) and (groups is None or set([str(g) for g in groups]).intersection([str(dg) for dg in datum['groups']]))]
             return self._whitelist_entries
         if ltype_clean == 'black':
-            self._blacklist_entries = [datum for datum in response_json.get("data", []) if (not only_enabled or int(datum['enabled']) != 0) and int(datum['type']) in (1, 3) and (groups is None or set([str(g) for g in groups]).intersection([dg for dg in datum['groups']]))]
-
+            self._blacklist_entries = [datum for datum in response_json.get("data", []) if (not only_enabled or int(datum['enabled']) != 0) and int(datum['type']) in (1, 3) and (groups is None or set([str(g) for g in groups]).intersection([str(dg) for dg in datum['groups']]))]
             return self._blacklist_entries
 
         return None
