@@ -1,5 +1,6 @@
 import sqlite3
 import twilio_utils
+import os
 
 def get_domains_in_interval(domain_data_db_file, oldest_timestamp, newest_timestamp, permitted, new_only):
     if new_only:
@@ -23,10 +24,21 @@ def get_domains_in_interval(domain_data_db_file, oldest_timestamp, newest_timest
 
     return domains
 
-def notify_of_new_domains_in_interval(domain_data_db_file, oldest_timestamp, newest_timestamp, permitted, admin_phone, twilio_phone):
+def notify_of_new_domains_in_interval_twilio(domain_data_db_file, oldest_timestamp, newest_timestamp, permitted, admin_phone, twilio_phone):
     previously_unseen_domains = get_domains_in_interval(domain_data_db_file, oldest_timestamp, newest_timestamp, permitted, True)
 
     twilio_utils.notify_of_new_domains(previously_unseen_domains, admin_phone, twilio_phone, blocked=not permitted)
+
+def notify_of_new_domains_in_interval_ses(domain_data_db_file, oldest_timestamp, newest_timestamp, permitted, admin_email):
+    previously_unseen_domains = get_domains_in_interval(domain_data_db_file, oldest_timestamp, newest_timestamp, permitted, True)
+
+    ses_utils.notify_of_new_domains(previously_unseen_domains, admin_email, blocked=not permitted)
+
+def notify_of_new_domains_in_interval(domain_data_db_file, oldest_timestamp, newest_timestamp, permitted, admin_phone=None, twilio_phone=None, admin_email=None):
+    if os.environ['NOTIFY_METHOD'].upper() == 'TWILIO':
+        notify_of_new_domains_in_interval_twilio(domain_data_db_file, oldest_timestamp, newest_timestamp, permitted, admin_phone, twilio_phone)
+    if os.environ['NOTIFY_METHOD'].upper() == 'SES':
+        notify_of_new_domains_in_interval_ses(domain_data_db_file, oldest_timestamp, newest_timestamp, permitted, admin_email)
 
 def log_reason(domain_data_db_file, values_dicts, updateable_fields=None):
     """

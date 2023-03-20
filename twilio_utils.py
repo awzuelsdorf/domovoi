@@ -1,7 +1,5 @@
 from twilio.rest import Client
 import os
-import requests
-import time
 
 def notify_of_new_domains(all_domains: list, recipient_phone: str, twilio_phone: str, blocked: bool=True, batch_size=50):
     """
