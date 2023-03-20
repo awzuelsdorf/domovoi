@@ -87,7 +87,7 @@ class MapResolver(client.Resolver):
 
                 self.log_reason(name.decode('utf-8'), domain_name, reason, False)
 
-                print(f"Saving domain name \"{domain_name}\" that corresponds to FQDN \"{name}\" that was permitted")
+                print(f"Saving domain name \"{domain_name}\" that corresponds to FQDN \"{name}\" that was not permitted")
             else:
                 domain_name = self.get_domain_from_fqdn(name.decode('utf-8'))
 
