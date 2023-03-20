@@ -94,5 +94,6 @@ fi
 
 # Comment this line if you don't want Twilio.
 #export TWILIO_ENABLED=1
+export SES_ENABLED=1
 
 python new_domain_alert.py 2>&1 | tee run_domain_alert.sh.log;
