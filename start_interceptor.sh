@@ -81,6 +81,10 @@ if [ -f "./twistd.pid" ]; then
         /bin/rm -f ./twistd.pid
 fi
 
+if [ "$GROUP_IDS" == "" ]; then
+        export GROUP_IDS='0'
+fi
+
 nohup twistd -ny ./interceptor.py > ./start_interceptor.sh.stdout.log 2> ./start_interceptor.sh.stderr.log &
 
 popd
